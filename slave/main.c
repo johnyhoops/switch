@@ -10,10 +10,10 @@ int main(void)
 	modbus_init();
 	
 	while(1){	
-		for(uint8_t i = 0 ; i < 100 ; i++){
-			_delay_ms(1); // 100 ms delay
-		}
-		map_update();
+		
+		for(uint8_t i = 0 ; i < 100 ; i++) _delay_ms(1); // 100 ms delay
+
+		reg_update();
 	}
 
 	return 0;

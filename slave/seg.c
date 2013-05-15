@@ -69,7 +69,7 @@ static const uint8_t PROGMEM charmap[] =
 	0x10, // '_'
 };
 
-uint8_t charmap_getSegments(uint8_t asciicode)
+uint8_t seg_getSegments(uint8_t asciicode)
 {
 	while (asciicode > '_') asciicode -= 32;
 	if (asciicode < ' ') asciicode = ' ';

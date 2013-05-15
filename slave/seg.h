@@ -1,5 +1,5 @@
-#ifndef MAP_H_
-#define MAP_H_
+#ifndef SEG_H_
+#define SEG_H_
 
 #include <stdint.h>
 
@@ -7,11 +7,11 @@
 extern "C"{
 #endif
 
-uint8_t charmap_getSegments(uint8_t asciicode);
+uint8_t seg_getSegments(uint8_t asciicode);
 
 #ifdef __cplusplus
 } // extern "C"
 #endif
 
 
-#endif /* MAP_H_ */
+#endif /* SEG_H_ */

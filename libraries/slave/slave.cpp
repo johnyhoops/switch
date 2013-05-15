@@ -1,15 +1,25 @@
+#include <avr/io.h>
 #include <util/crc16.h>
 #include <util/delay.h>
 
 #include "slave.h"
+#include "asm.h"
+
+#define kRXTimeout 100
+#define kCharTimeout 20
 
 #define kSlaveAddressOffset 0
 #define kFunctionCodeOffset 1
 #define kRegisterAddressOffset 2
 #define kRegisterQuantityOffset 4
 
+#define kReadDataOffset 3
+#define kWriteDataOffset 7
+
 #define kFunctionReadRegisters 3
 #define kFunctionWriteRegisters 16
+
+#define kBufferSize 32
 
 
 uint16_t crc(uint8_t* data, uint8_t bytes)
@@ -25,27 +35,36 @@ uint16_t crc(uint8_t* data, uint8_t bytes)
 
 void tx(uint8_t* buffer, uint8_t bytes)
 {
-	UCSRB &= ~(1 << RXEN);		// disable receiver
+	// init uart
+	UCSRB = (1 << TXEN);	// uart 19200 8 n 1
+	UCSRC = (1 << URSEL) | (1 << UCSZ0) | (1 << UCSZ1);
+	UBRRL = 25;
+	UCSRA |= (1 << TXC);	// clear tx complete flag
+
 	for(uint8_t i = 0 ; i < bytes ; i++){
 		while(!( UCSRA & (1 << UDRE)));
 		UDR = buffer[i];
 	}
 	while(!(UCSRA & (1 << TXC)));
-	UCSRB |= (1 << RXEN);			// enable receiver
+
+	UCSRB |= (1 << RXEN);	// enable receiver
 }
 
 
 uint8_t rx(uint8_t* buffer, uint8_t* bytes)
 {
 	*bytes = 0;
+	uint8_t timer = kRXTimeout;
 	while(*bytes < kBufferSize){
-		uint8_t timer = 0;
 		while (!(UCSRA & (1 << RXC))){
-			if(++timer > 9) return kOK;
-			_delay_us(26);	// 1/2 character period at 19200 bps
+			if(timer) --timer;
+			if((timer == 0) && (*bytes)) return kOK;
+			if(timer == 0) return kTimeoutError;
+			_delay_us(50);
 		}
+		timer = kCharTimeout;
 		buffer[*bytes] = UDR;
-		*bytes += 1;
+		*bytes = *bytes + 1;
 	}
 	return kOverrunError;
 }
@@ -54,24 +73,24 @@ uint8_t rx(uint8_t* buffer, uint8_t* bytes)
 void send(uint8_t* buffer, uint8_t bytes)
 {
 	if(bytes + 2 < kBufferSize){
-		uint16_t CRC = crc(data, bytes);		// calculate and add the crc
+		uint16_t CRC = crc(buffer, bytes);		// calculate and add the crc
 		buffer[bytes] = CRC & 0xFF;
 		buffer[bytes + 1] = (CRC >> 8) & 0xFF;
-		uart_tx(buffer, bytes + 2);
+		tx(buffer, bytes + 2);
 	}
 }
 
 
 uint8_t receive(uint8_t* buffer, uint8_t* bytes)
 {
-	uint8_t byteCount, error;
+	uint8_t error, byteCount;
 	
 	*bytes = 0;
 	error = rx(buffer, &byteCount);
 	if(error) return error;
 	if(byteCount < 4) return kFrameError;
 	uint16_t CRC = crc(buffer, byteCount);		// calculate the crc
-	if(CRC) return kCRCError;
+	if(CRC) return byteCount; //kCRCError;
 	*bytes = byteCount - 2;
 	return kOK;
 }
@@ -79,46 +98,53 @@ uint8_t receive(uint8_t* buffer, uint8_t* bytes)
 
 Slave::Slave(uint8_t address)
 {
-	Slave::slaveAddress = address;
-	// init uart
-	UCSRB = (1 << RXCIE) | (1 << RXEN) | (1 << TXEN);	// uart 19200 8 n 1
-	UCSRC = (1 << URSEL) | (1 << UCSZ0) | (1 << UCSZ1);
-	UBRRL = 25;
+	slaveAddress = address;
 }
 
 
-~Slave(void)
-{
-	end();
-}
-
-
-uint8_t Slave::read(uint16_t* data, uint16_t address, uint8_t quantity)
+uint8_t Slave::readRegisters(uint16_t* data, uint16_t address, uint8_t quantity)
 {
 	uint8_t buffer[kBufferSize];
-	
-	buffer[kSlaveAddressOffset] = this.slaveAddress;
+	// build frame
+	buffer[kSlaveAddressOffset] = slaveAddress;
 	buffer[kFunctionCodeOffset] = kFunctionReadRegisters;
-	buffer[kRegisterAddressOffset] = 
-	
-	
-	buffer[kSlaveAddressOffset] = this.slaveAddress;
-	buffer[kFunctionCodeOffset] = kFunctionReadRegisters;
-	buffer[kRegisterAddressOffset] = address >> 8;
-	buffer[kRegisterAddressOffset + 1] = address & 0xFF;
-	buffer[kRegisterQuantityOffset] = 0;
-	buffer[kRegisterQuantityOffset + 1] = quantity;
+	*(uint16_t*)(&buffer[kRegisterAddressOffset]) = asm_htons(address);
+	*(uint16_t*)(&buffer[kRegisterQuantityOffset]) = asm_htons(quantity);
+	// send frame
 	send(buffer, kRegisterQuantityOffset + 2);
+	// receive response
 	uint8_t bytes;
+	return kOK;
 	uint8_t error = receive(buffer, &bytes);
 	if(error != kOK) return error;
+	// extract data from frame
 	for(uint8_t i = 0 ; i < quantity ; i++){
-		data[i] = (uint16_t)buffer[4 + i * 2] + ((uint16_t)buffer[3 + i * 2] << 8);
+		data[i] = asm_htons(*(uint16_t*)(&buffer[kReadDataOffset + i * 2]));
 	}	
 	return kOK;
 }
 
-uint8_t Slave::write(uint16_t* data, uint16_t address, uint8_t quantity)
+uint8_t Slave::writeRegisters(uint16_t* data, uint16_t address, uint8_t quantity)
 {
+	uint8_t buffer[kBufferSize];
+	// build frame
+	buffer[kSlaveAddressOffset] = slaveAddress;
+	buffer[kFunctionCodeOffset] = kFunctionWriteRegisters;
+	*(uint16_t*)(&buffer[kRegisterAddressOffset]) = asm_htons(address);
+	*(uint16_t*)(&buffer[kRegisterQuantityOffset]) = asm_htons(quantity);
+	for(uint8_t i = 0 ; i < quantity ; i++){
+		*(uint16_t*)(&buffer[kWriteDataOffset + i * 2]) = asm_htons(data[i]);
+	}	
+	// send frame
+	send(buffer, kWriteDataOffset + 2);
+	// receive response
+	uint8_t bytes;
+	//return kOK;
+	uint8_t error = receive(buffer, &bytes);
+	if(error != kOK) return error;
 
+	return kOK;
 }
+
+size_t Slave::write(uint8_t data) {
+return 0;}

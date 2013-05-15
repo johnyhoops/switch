@@ -20,7 +20,7 @@ SRC = $(TARGET).c
 
 # If there is more than one source file, append them above, or modify and
 # uncomment the following:
-SRC += uart.c modbus.c map.c charmap.c pressure.c twi.c adc.c
+SRC += uart.c modbus.c reg.c seg.c i2c.c twi.c adc.c itoa.c
 
 # You can also wrap lines by appending a backslash to the end of the line:
 #SRC += baz.c \

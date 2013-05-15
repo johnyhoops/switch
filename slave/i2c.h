@@ -1,5 +1,5 @@
-#ifndef PRESSURE_H_
-#define PRESSURE_H_
+#ifndef I2C_H
+#define I2C_H
 
 #ifdef __cplusplus
 extern "C"{
@@ -7,10 +7,10 @@ extern "C"{
 
 #include "hal.h"
 
-extern HAL pressure;
+extern HAL i2c;
 
 #ifdef __cplusplus
 } // extern "C"
 #endif
 
-#endif /* PRESSURE_H_ */
+#endif /* I2C_H */

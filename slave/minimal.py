@@ -1,7 +1,7 @@
 import minimalmodbus
 import time
 
-address = 2
+address = 1
 instrument = minimalmodbus.Instrument('/dev/ttyUSB0', address) # port name, slave address (in decimal)
 instrument.serial.timeout  = 0.02
 
@@ -20,15 +20,28 @@ def setDisplay(string):
 	instrument.write_registers(0, output);		
 			
 
-			
+i = 0			
 while True:
-	value = str(instrument.read_register(9, 0, signed=True)) # Registernumber, number of decimals
-	setDisplay(value)
-	time.sleep(.005)
-	instrument.write_registers(4, [0, 1]);		
+	
+	#value = instrument.read_register(11, 0, signed=True) # Registernumber, number of decimals
+	#instrument.write_registers(16, [ 3, i]);
+	instrument.write_registers(1, [i]);
+	i = i + 5
+	if i > 255:
+		i = 0
+	time.sleep(.1)
+	
+	#instrument.write_registers(1, [0]);
+	#instrument.write_registers(16, [0]);
+	instrument.write_registers(18, [0x412e, 0x422e]);
+	time.sleep(.05)
+	
+	#setDisplay(value)
+	#time.sleep(.005)
+	#instrument.write_registers(4, [0, 1]);		
 	#instrument2.write_registers(4, [0, 1]);
-	time.sleep(.005)
-	instrument.write_registers(4, [1, 0]);	
+	#time.sleep(.005)
+	#instrument.write_registers(4, [1, 0]);	
 	#instrument2.write_registers(4, [1, 0]);	
 
 

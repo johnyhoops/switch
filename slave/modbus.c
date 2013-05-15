@@ -2,7 +2,7 @@
 #include <util/crc16.h>
 
 #include "uart.h"
-#include "map.h"
+#include "reg.h"
 
 #define kBroadcastAddress 0
 
@@ -46,6 +46,7 @@ void modbus_send(uint8_t* data, uint8_t bytes)
 
 void modbus_init(void)
 {
+	reg_init();
 	uart_open(modbus_update);
 	slaveAddress = eeprom_read_word(kSlaveAddressEEPROM) & 0xFF;
 }
@@ -69,7 +70,7 @@ void modbus_update(void)
 		uint8_t byteCount = registerQuantity * 2;
 		buffer[2] = byteCount;
 		for(uint8_t i = 0 ; i < registerQuantity ; i++){
-			error = map_getRegister(registerAddress + i, &value);
+			error = reg_getRegister(registerAddress + i, &value);
 			if(error) break;
 			buffer[3 + i * 2] = (uint16_t)value >> 8;
 			buffer[4 + i * 2] = (uint16_t)value & 0xFF;		
@@ -84,7 +85,7 @@ void modbus_update(void)
 		
 	} else if (buffer[kFunctionCodeOffset] == kFunctionWriteRegisters){
 		for(uint8_t i = 0 ; i < registerQuantity ; i++){
-			error = map_setRegister(registerAddress + i, 
+			error = reg_setRegister(registerAddress + i, 
 					((uint16_t)buffer[7 + i * 2] << 8) + (uint16_t)buffer[8 + i * 2]);
 			if(error) break;
 		}
