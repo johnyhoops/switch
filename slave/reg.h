@@ -15,21 +15,24 @@
 #define reg_kInputI2C						10
 #define reg_kKeypad							11
 
-#define reg_kDisplayFormat 			16
-#define reg_kDisplayInteger			17
-#define reg_kDisplayString			18
+
+#define reg_kDisplayString			16
+#define reg_kDisplayFormat 			18
+#define reg_kDisplayInteger			19
+
+
 
 #define reg_kEEPROM							32
 
 #define reg_kFlash							16
-#define reg_kFlashMask					(Flash - 1)
+#define reg_kFlashMask					(reg_kFlash - 1)
 
 #define reg_kSlaveAddressEEPROM 0
 
 void reg_init(void);
 uint8_t reg_update(void);
+void reg_setDisplay(char* str);
 uint8_t reg_setRegister(uint16_t registerAddress, int16_t registerValue);
 uint8_t reg_getRegister(uint16_t registerAddress, int16_t* registerValue);
-
 
 #endif

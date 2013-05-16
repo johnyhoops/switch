@@ -3,6 +3,7 @@
 
 #include "uart.h"
 #include "reg.h"
+#include "asm.h"
 
 #define kBroadcastAddress 0
 
@@ -48,7 +49,7 @@ void modbus_init(void)
 {
 	reg_init();
 	uart_open(modbus_update);
-	slaveAddress = eeprom_read_word(kSlaveAddressEEPROM) & 0xFF;
+	slaveAddress = eeprom_read_word(reg_kSlaveAddressEEPROM) & 0xFF;
 }
 
 
@@ -61,6 +62,8 @@ void modbus_update(void)
 	if(crc(buffer, bytes) != 0) return;
 	if((buffer[kSlaveAddressOffset] != slaveAddress) 
 			&& (buffer[kSlaveAddressOffset] != kBroadcastAddress)) return;
+			
+			//asm_htons(*(uint16_t*)(&buffer[kRegisterAddressOffset]));
 	
 	uint16_t registerAddress = ((uint16_t)buffer[2] << 8) + (uint16_t)buffer[3];
 	uint16_t registerQuantity = ((uint16_t)buffer[4] << 8) + (uint16_t)buffer[5];

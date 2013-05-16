@@ -10,9 +10,9 @@
 #include "i2c.h"
 #include "itoa.h"
 
-#define kSegmentDP					1
-#define kSegmentBufferSize	8
-#define kNumberOfDigits			4
+#define reg_kSegmentDP					1
+#define reg_kSegmentBufferSize	8
+#define reg_kNumberOfDigits			4
 
 static int16_t i2cValue = 0;
 static uint8_t format = 0;
@@ -24,62 +24,67 @@ void reg_init(void)
 	TCCR1A = (1 << WGM10);
 }
 
-void setDisplay(char* str)
+void reg_setDisplay(char* str)
 {
-	uint8_t segmentBuffer[kSegmentBufferSize];
+	uint8_t segmentBuffer[reg_kSegmentBufferSize];
 	uint8_t segmentBufferIndex = 0;
 	uint8_t segments;
 	
-	memset(segmentBuffer, 0, kSegmentBufferSize);
+	memset(segmentBuffer, 0, reg_kSegmentBufferSize);
 	while(*str){
 		if(*str == '.'){
 			if(segmentBufferIndex != 0){
 				segmentBufferIndex--;
 			}
-			segments = segmentBuffer[segmentBufferIndex] | kSegmentDP;
+			segments = segmentBuffer[segmentBufferIndex] | reg_kSegmentDP;
 		} else {
 			segments = seg_getSegments(*str);
 		}
 		segmentBuffer[segmentBufferIndex] = segments;
-		if((format & Flash) == 0){
-			segmentBuffer[segmentBufferIndex + kNumberOfDigits] = segments;
+		if((format & reg_kFlash) == 0){
+			segmentBuffer[segmentBufferIndex + reg_kNumberOfDigits] = segments;
 		}
 		if(++segmentBufferIndex > 3){
 			break;
 		}
 		str++;
 	}	
-	memcpy(bios_segment, segmentBuffer, kSegmentBufferSize);
+	memcpy(bios_segment, segmentBuffer, reg_kSegmentBufferSize);
 }
 
 uint8_t reg_setRegister(uint16_t registerAddress, int16_t registerValue)
 {
 	static char str[itoa_kMaxStringLength];
 
-	if(registerAddress == DisplayFormat){
+	if(registerAddress == reg_kDisplayFormat){
+		if(registerValue & reg_kFlash){
+			memset(bios_segment + reg_kNumberOfDigits, 0, reg_kNumberOfDigits);
+		} else {
+			memcpy(bios_segment + reg_kNumberOfDigits, bios_segment, reg_kNumberOfDigits);
+		}
 		format = registerValue;
-		return kOK;
+		return reg_kOK;
 	}
 	
-	if(registerAddress == DisplayInteger){
-		itoa_toString(str, registerValue, format & FlashMask);
-		setDisplay(str);
-		return kOK;
+	if(registerAddress == reg_kDisplayInteger){
+		itoa_toString(str, registerValue, format & reg_kFlashMask);
+		reg_setDisplay(str);
+		return reg_kOK;
 	}
 	
-	if(registerAddress == DisplayString){	
+	if(registerAddress == reg_kDisplayString){	
 		*((int16_t*)(&str[0])) = registerValue;
-		return kOK;
+		return reg_kOK;
 	}
 	
-	if(registerAddress == DisplayString + 1){	
+	if(registerAddress == reg_kDisplayString + 1){	
 		*((int16_t*)(&str[2])) = registerValue;
 		str[4] = 0;
-		setDisplay(str);
-		return kOK;
+		reg_setDisplay(str);
+		return reg_kOK;
 	}
 	
-	if(registerAddress == Output1){
+	if(registerAddress == reg_kOutput1){
 		if(registerValue <= 0){
 			TCCR1A &= ~(1 << COM1B1);
 			PORTB &= ~(1 << PORTB2);
@@ -90,10 +95,10 @@ uint8_t reg_setRegister(uint16_t registerAddress, int16_t registerValue)
 			TCCR1A |= (1 << COM1B1);
 			OCR1B = registerValue;
 		}
-		return kOK;
+		return reg_kOK;
 	}
 	
-	if(registerAddress == Output2){
+	if(registerAddress == reg_kOutput2){
 		if(registerValue <= 0){
 			TCCR1A &= ~(1 << COM1A1);
 			PORTB &= ~(1 << PORTB1);
@@ -104,48 +109,48 @@ uint8_t reg_setRegister(uint16_t registerAddress, int16_t registerValue)
 			TCCR1A |= (1 << COM1A1);
 			OCR1A = registerValue;
 		}
-		return kOK;
+		return reg_kOK;
 	}
 	
-	if(registerAddress == SlaveAddress){
+	if(registerAddress == reg_kSlaveAddress){
 		if(((uint8_t)((uint16_t)registerValue >> 8) 
 			^ (uint8_t)((uint16_t)registerValue & 0xFF)) == 0xFF){
-			eeprom_write_word(kSlaveAddressEEPROM, (uint16_t)registerValue);
+			eeprom_write_word(reg_kSlaveAddressEEPROM, (uint16_t)registerValue);
 		}
-		return kOK;
+		return reg_kOK;
 	}
-	return kAddressInvalid;
+	return reg_kAddressInvalid;
 }
 
 
 uint8_t reg_getRegister(uint16_t registerAddress, int16_t* registerValue)
 {
-	if(registerAddress == Keypad){
+	if(registerAddress == reg_kKeypad){
 		*registerValue = bios_getKey();
-		return kOK;
+		return reg_kOK;
 	}
-	if(registerAddress == Input1){
+	if(registerAddress == reg_kInput1){
 		*registerValue = adc.getValue(ADC_IN1);
-		return kOK;
+		return reg_kOK;
 	}
-	if(registerAddress == Input2){
+	if(registerAddress == reg_kInput2){
 		*registerValue = adc.getValue(ADC_IN2);
-		return kOK;
+		return reg_kOK;
 	}
-	if(registerAddress == InputI2C){
+	if(registerAddress == reg_kInputI2C){
 		*registerValue = i2cValue;
-		return kOK;
+		return reg_kOK;
 	}
-	if(registerAddress >= EEPROM){
-		*registerValue = eeprom_read_word((const uint16_t*)(registerAddress * 2 - EEPROM));
-		return kOK;
+	if(registerAddress >= reg_kEEPROM){
+		*registerValue = eeprom_read_word((const uint16_t*)(registerAddress * 2 - reg_kEEPROM));
+		return reg_kOK;
 	}
-	return kAddressInvalid;
+	return reg_kAddressInvalid;
 }
 
 uint8_t reg_update(void)
 {
 	i2cValue = i2c.getValue(0);
-	return kOK;
+	return reg_kOK;
 }
 

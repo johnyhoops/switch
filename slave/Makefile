@@ -30,7 +30,7 @@ SRC += uart.c modbus.c reg.c seg.c i2c.c twi.c adc.c itoa.c
 
 # List Assembler source files here.
 # Make them always end in a capital .S
-ASRC = bios.S
+ASRC = bios.S asm.S
 
 
 # List any extra directories to look for include files here.
