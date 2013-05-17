@@ -10,10 +10,10 @@
 class Slave {
 
 public:
-	Slave(uint8_t address);
-	int16_t get(uint16_t address);
-	void set(uint16_t address, int16_t value);
-	void set(uint16_t address, char* string);
+	Slave(unsigned int address);
+	int get(unsigned int address);
+	void set(unsigned int address, int value);
+	void set(unsigned int address, char* string);
 
 private:
 	uint8_t getRegisters(uint16_t* data, uint16_t address, uint8_t quantity);

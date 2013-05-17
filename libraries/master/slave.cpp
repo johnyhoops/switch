@@ -144,14 +144,14 @@ uint8_t Slave::setRegisters(uint16_t* data, uint16_t address, uint8_t quantity)
 }
 
 
-Slave::Slave(uint8_t address)
+Slave::Slave(unsigned int address)
 {
 	slaveAddress = address;
 	format = 0;
 }
 
 
-int16_t Slave::get(uint16_t address)
+int Slave::get(unsigned int address)
 {
 	uint16_t returnVal;
 	if(getRegisters(&returnVal, address, 1) != kOK) return 0;
@@ -159,7 +159,7 @@ int16_t Slave::get(uint16_t address)
 }
 
 
-void Slave::set(uint16_t address, int16_t value)
+void Slave::set(unsigned int address, int value)
 {
 	uint16_t data[2];
 	if(address == DisplayFormat){
@@ -176,7 +176,7 @@ void Slave::set(uint16_t address, int16_t value)
 }
 
 
-void Slave::set(uint16_t address, char* string)
+void Slave::set(unsigned int address, char* string)
 {
 	if(address == Display){
 		uint16_t data[3];
