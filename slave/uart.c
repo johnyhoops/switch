@@ -24,7 +24,7 @@ static uint8_t rx_status;
 
 static rxFunction callback;
 
-#define uart_kTimer0Reload (255 - 15)
+#define uart_kTimer0Reload (255 - 8)
 
 
 uint8_t uart_open(rxFunction rxCallback)

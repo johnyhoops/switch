@@ -6,7 +6,7 @@
 #include "asm.h"
 
 #define kRXTimeout 100
-#define kCharTimeout 20
+#define kCharTimeout 30
 
 #define kSlaveAddressOffset 0
 #define kFunctionCodeOffset 1
