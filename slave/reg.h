@@ -14,17 +14,24 @@
 #define reg_kInput2							9
 #define reg_kInputI2C						10
 #define reg_kKeypad							11
+#define reg_kCounter1						12
+#define reg_kFrequency1					13
+#define reg_kCounter2						14
+#define reg_kFrequency2					15
+#define reg_kPhilips1						16
+#define reg_kPhilips2						17
+#define reg_kHoneywell1					18
+#define reg_kHoneywell2					19
+
+#define reg_kDisplayString			32
+#define reg_kDisplayFormat 			34
+#define reg_kDisplayInteger			35
 
 
-#define reg_kDisplayString			16
-#define reg_kDisplayFormat 			18
-#define reg_kDisplayInteger			19
 
+#define reg_kEEPROM							64
 
-
-#define reg_kEEPROM							32
-
-#define reg_kFlash							16
+#define reg_kFlash							128
 #define reg_kFlashMask					(reg_kFlash - 1)
 
 #define reg_kSlaveAddressEEPROM 0

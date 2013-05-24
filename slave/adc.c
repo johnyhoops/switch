@@ -36,9 +36,7 @@ int16_t adc_get(int16_t channel)
 
 	adc_init();
 
-	if(channel == 2) {
-		channel = 0;
-	} else if(channel != 1){
+	if((channel < ADC_IN2) || (channel > ADC_IN1)){
 		return 0;
 	}
 

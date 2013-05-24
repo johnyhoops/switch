@@ -20,7 +20,7 @@ SRC = $(TARGET).c
 
 # If there is more than one source file, append them above, or modify and
 # uncomment the following:
-SRC += uart.c modbus.c reg.c seg.c i2c.c twi.c adc.c itoa.c
+SRC += uart.c modbus.c reg.c seg.c i2c.c twi.c adc.c itoa.c ntcPhilips.c ntcHoneywell.c
 
 # You can also wrap lines by appending a backslash to the end of the line:
 #SRC += baz.c \
@@ -52,6 +52,7 @@ CFLAGS = -g -O$(OPT) \
 -DF_CPU=8000000 \
 $(patsubst %,-I%,$(EXTRAINCDIRS))
 
+#-Wa,-adhlns=$(<:.c=.lst) \
 
 # Set a "language standard" compiler flag.
 #   Unremark just one line below to set the language standard to use.

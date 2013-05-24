@@ -25,8 +25,6 @@ int main(void)
 	reg_setDisplay("");
 	
 	while(1){	
-		
-		delay(100);  // 100 ms delay
 		reg_update();
 	}
 

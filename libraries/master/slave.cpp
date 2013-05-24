@@ -102,6 +102,11 @@ uint8_t receive(uint8_t* buffer, uint8_t* bytes)
 }
 
 
+Slave::Slave()
+{
+	items = 0;
+}
+
 uint8_t Slave::getRegisters(uint16_t* data, uint16_t address, uint8_t quantity)
 {
 	uint8_t buffer[kBufferSize];
@@ -144,12 +149,11 @@ uint8_t Slave::setRegisters(uint16_t* data, uint16_t address, uint8_t quantity)
 }
 
 
-Slave::Slave(unsigned int address)
+void Slave::setSlaveAddress(unsigned int address)
 {
 	slaveAddress = address;
 	format = 0;
 }
-
 
 int Slave::get(unsigned int address)
 {
@@ -190,4 +194,77 @@ void Slave::set(unsigned int address, char* string)
 }
 
 
+#define kLabel	0
+#define kValue	1
+
+void Slave::attachMenu(MenuItem* menuList)
+{
+	menu = menuList;
+	item = 0;
+	state = kValue;
+	lastState = kLabel;	// force an initial update of the display
+	lastValue = 0;
+	lastItem = 0;
+	
+	while(menu[items].label != NULL){
+		items++;
+	}	
+}
+
+
+void Slave::updateMenu(void)
+{
+	if(items == 0) return;
+	
+	// update state
+	int key = get(Keypad);
+	if(state == kValue){
+		if(key == CenterShort) state = kLabel;
+		if(menu[item].access == ReadWrite){
+			if(key == LeftShort) *menu[item].value -= 1;
+			if(key == LeftLong) *menu[item].value -= 10;
+			if(key == RightShort) *menu[item].value += 1;
+			if(key == RightLong) *menu[item].value += 10;
+		}
+	} else {
+		if(key == LeftShort){
+			if(item == 0) item = items;
+			item--;
+		}
+		if(key == RightShort){
+			item++;
+			if(item == items) item = 0;
+		}
+		if(key == CenterShort) state = kValue;	
+		
+	}
+	
+	// range check boolean
+	if(menu[item].format == Bool){
+		if(*menu[item].value > 1) *menu[item].value = 1;
+		if(*menu[item].value < 0) *menu[item].value = 0;
+	}
+	
+	// update display
+	if(state == kValue){
+		int newValue = *(menu[item].value);
+		if((newValue != lastValue) || (lastState == kLabel)) {
+			lastValue = newValue;
+			lastState = kValue;
+			if(menu[item].access == ReadWrite){
+				set(DisplayFormat, menu[item].format | Flash);
+			} else {
+				set(DisplayFormat, menu[item].format);
+			}
+			set(Display, newValue);
+		}
+	} else {
+		if((lastState == kValue) || (lastItem != item)) {
+			lastItem = item;
+			lastState = kLabel;
+			set(DisplayFormat, menu[item].format);
+			set(Display,  menu[item].label);
+		}
+	}
+}
 
