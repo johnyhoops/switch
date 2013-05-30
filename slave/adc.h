@@ -7,11 +7,17 @@
 extern "C"{
 #endif
 
-// ADC channel assignment
-#define ADC_IN2		0
-#define ADC_IN1		1
+enum adc_reference{
+	adc_kInput1 = 1,
+	adc_kInput2,
+	adc_kCounter1,
+	adc_kCounter2,
+	adc_kFrequency1,
+	adc_kFrequency2,
 
-extern const HAL adc;
+};
+
+HAL* adc(void);
 
 #ifdef __cplusplus
 } // extern "C"

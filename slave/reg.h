@@ -23,9 +23,10 @@
 #define reg_kHoneywell1					18
 #define reg_kHoneywell2					19
 
-#define reg_kDisplayString			32
-#define reg_kDisplayFormat 			34
-#define reg_kDisplayInteger			35
+
+#define reg_kDisplayFormat 			32
+#define reg_kDisplayInteger			33
+#define reg_kDisplayString			34
 
 
 

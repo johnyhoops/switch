@@ -23,6 +23,7 @@ static uint8_t buffer[uart_kBufferSize];
 
 void modbus_update(void);
 
+
 uint16_t crc(uint8_t* data, uint8_t bytes)
 {
 	uint16_t CRC = 0xFFFF;

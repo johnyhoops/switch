@@ -7,16 +7,20 @@
 extern "C"{
 #endif
 
-// returns device value
-typedef int16_t (*getValueFunction)(int16_t reference);
+typedef void (*initFunction)(uint8_t reference);
+typedef void (*updateFunction)(uint8_t reference);
+typedef int16_t (*getValueFunction)(uint8_t reference);
+typedef void (*setValueFunction)(uint8_t reference, int16_t value);
 
-// returns the value set
-typedef int16_t (*setValueFunction)(int16_t reference, int16_t value);
-
-typedef struct{
+typedef const struct{
+	initFunction		init;
+	updateFunction		update;
 	getValueFunction 	getValue;
 	setValueFunction 	setValue;
 } HAL;
+
+// returns the value set
+typedef HAL* (*getHAL)(void);
 
 #ifdef __cplusplus
 } // extern "C"

@@ -7,7 +7,11 @@ extern "C"{
 
 #include "hal.h"
 
-extern HAL i2c;
+enum i2c_reference{
+	i2c_kInput = 0,
+};
+
+HAL* i2c(void);
 
 #ifdef __cplusplus
 } // extern "C"

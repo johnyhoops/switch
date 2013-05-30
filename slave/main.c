@@ -17,12 +17,12 @@ void delay(uint16_t ms)
 
 int main(void)
 {
-	bios_init();
+
 	modbus_init();
 	
-	reg_setDisplay(kRevision);
+	//reg_setDisplay(kRevision);
 	delay(1000);
-	reg_setDisplay("");
+	//reg_setDisplay("");
 	
 	while(1){	
 		reg_update();

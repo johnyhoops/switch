@@ -18,7 +18,7 @@ void bios_init(void);
 
 // bios_getKey returns...
 #define bios_kLeftShort 		0x02 	// for left button short push
-#define bios_kCenterShort 	0x04 	// for center button short push
+#define bios_kCenterShort 		0x04 	// for center button short push
 #define bios_kRightShort 		0x08 	// for right button short push
 #define bios_kLeftLong 			0x20 	// for left button long push
 #define bios_kCenterLong 		0x40 	// for center button long push

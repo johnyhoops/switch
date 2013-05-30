@@ -4,39 +4,43 @@
 #include "i2c.h"
 #include "twi.h"
 
-
-int16_t i2c_get(int16_t type);
-
-HAL i2c = {
-	i2c_get,
-	0
-};
-
-static volatile uint8_t i2c_status = 0;
-static const uint8_t i2c_address = 72;
+#define i2c_address 72
+static int16_t value = 0;
 
 
-void i2c_init(void)
+static void init(uint8_t reference)
 {
-	if(i2c_status == 0){
-		i2c_status = ~0;
-		twi_init();
-	}
+	twi_init();
 }
 
 
-int16_t i2c_get(int16_t type)
+static void update(uint8_t reference)
 {
-	int16_t value;
 	uint8_t rxBuffer[2];
 	uint8_t config = 0x8F;
-
-	i2c_init();
 
 	twi_writeTo(i2c_address, &config, 1, 1);
 	twi_readFrom(i2c_address, rxBuffer, 2);
 
 	value = (rxBuffer[0] << 8) + rxBuffer[1];
+}
 
+
+static int16_t getValue(uint8_t reference)
+{
 	return value;
+}
+
+
+HAL i2cHAL = {
+	init,
+	update,
+	getValue,
+	0
+};
+
+
+HAL* i2c(void)
+{
+	return &i2cHAL;
 }

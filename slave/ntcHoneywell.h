@@ -6,9 +6,8 @@ extern "C"{
 #endif
 
 #include "hal.h"
-#include "adc.h"
 
-extern HAL ntcHoneywell;
+HAL* ntcHoneywell(void);
 
 #ifdef __cplusplus
 } // extern "C"
