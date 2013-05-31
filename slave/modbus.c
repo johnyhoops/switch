@@ -1,22 +1,22 @@
-#include <avr/eeprom.h>
 #include <util/crc16.h>
 
 #include "uart.h"
 #include "reg.h"
 #include "asm.h"
 
-#define kBroadcastAddress 0
 
-#define kSlaveAddressOffset 0
-#define kFunctionCodeOffset 1
+#define kBroadcastAddress 			0
 
-#define kFunctionReadRegisters 3
-#define kFunctionWriteRegisters 16
+#define kSlaveAddressOffset 		0
+#define kFunctionCodeOffset 		1
 
-#define kFunctionInvalidException 1
-#define kAddressInvalidException 2
+#define kFunctionReadRegisters 		3
+#define kFunctionWriteRegisters 	16
 
-#define kErrorMask 0x80
+#define kFunctionInvalidException 	1
+#define kAddressInvalidException 	2
+
+#define kErrorMask 					0x80
 
 static uint8_t slaveAddress;
 static uint8_t buffer[uart_kBufferSize];
@@ -28,7 +28,7 @@ uint16_t crc(uint8_t* data, uint8_t bytes)
 {
 	uint16_t CRC = 0xFFFF;
 
-	while(bytes--){ 											// crc check whole frame
+	while(bytes--){ 							// crc check whole frame
 		CRC = _crc16_update(CRC, *data++);
 	}
 	return CRC;
@@ -48,9 +48,10 @@ void modbus_send(uint8_t* data, uint8_t bytes)
 
 void modbus_init(void)
 {
-	reg_init();
 	uart_open(modbus_update);
-	slaveAddress = eeprom_read_word(reg_kSlaveAddressEEPROM) & 0xFF;
+	int16_t address;
+	reg_getRegister(SlaveAddress, &address);
+	slaveAddress = address;
 }
 
 
@@ -75,11 +76,11 @@ void modbus_update(void)
 		buffer[2] = byteCount;
 		for(uint8_t i = 0 ; i < registerQuantity ; i++){
 			error = reg_getRegister(registerAddress + i, &value);
-			if(error) break;
+			if(error != reg_kOK) break;
 			buffer[3 + i * 2] = (uint16_t)value >> 8;
 			buffer[4 + i * 2] = (uint16_t)value & 0xFF;		
 		}
-		if(error){
+		if(error != reg_kOK){
 			buffer[kFunctionCodeOffset] |= kErrorMask;
 			buffer[2] = kAddressInvalidException;
 			modbus_send(buffer, 3);		
@@ -91,10 +92,10 @@ void modbus_update(void)
 		for(uint8_t i = 0 ; i < registerQuantity ; i++){
 			error = reg_setRegister(registerAddress + i, 
 					((uint16_t)buffer[7 + i * 2] << 8) + (uint16_t)buffer[8 + i * 2]);
-			if(error) break;
+			if(error != reg_kOK) break;
 		}
 		if(buffer[kSlaveAddressOffset] == kBroadcastAddress) return;
-		if(error){
+		if(error != reg_kOK){
 			buffer[kFunctionCodeOffset] |= kErrorMask;
 			buffer[2] = kAddressInvalidException;
 			modbus_send(buffer, 3);

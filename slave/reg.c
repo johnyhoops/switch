@@ -16,157 +16,115 @@
 #include "ee.h"
 
 
-typedef struct {
-	getHAL 	getValue;
-	int reference;
+static uint8_t reg_mapSize = 0;
+
+typedef const struct {
+	getHAL 	device;
+	uint8_t reference;
 } Register;
 
 
-Register map[] = {
-		{i2c, 0},
-		{ntcHoneywell, 1},
-		{adc, 1},
-		{0}
+Register reg_map[] = {
+	{pwm, pwm_kOutput1},
+	{pwm, pwm_kOutput2},
+	{adc, adc_kInput1},
+	{adc, adc_kInput2},
+	{i2c, i2c_kInput},
+
+	{ntcPhilips, adc_kInput1},
+	{ntcPhilips, adc_kInput2},
+	{ntcHoneywell, adc_kInput1},
+	{ntcHoneywell, adc_kInput2},
+	{adc, adc_kCounter1},
+
+	{adc, adc_kCounter2},
+	{adc, adc_kFrequency1},
+	{adc, adc_kFrequency2},
+	{uif, uif_kKeypad},
+	{uif, uif_kDisplayFormat},
+
+	{uif, uif_kDisplayInteger},
+	{uif, uif_kDisplayFormat},
+	{uif, uif_kDisplayString1},
+	{uif, uif_kDisplayString2},
+	{uif, uif_kDisplayString3},
+
+	{uif, uif_kDisplayString4},
+	{ee, ee_SlaveAddress},
+	{ee, ee_eeprom1},
+	{ee, ee_eeprom2},
+	{ee, ee_eeprom3},
+
+	{0}
 };
 
-enum{
-	InputI2C = 0,
 
-};
-
-
-void reg_init(void)
+uint8_t reg_init(void)
 {
-	uif()->init(0);
-	adc()->init(0);
-	i2c()->init(0);
-	pwm()->init(0);
+	Register* i = reg_map;
+	reg_mapSize = 0;
 
+	while(*i->device){
+		initFunction initFunc = i->device()->init;
+		if(initFunc) initFunc(i->reference);
+		reg_mapSize++;
+		i++;
+	}
+
+	return reg_kOK;
 }
 
 
-uint8_t reg_setRegister(uint16_t registerAddress, int16_t registerValue)
+uint8_t reg_setRegister(uint8_t registerAddress, int16_t registerValue)
 {
-	if(registerAddress == reg_kDisplayFormat){
-		uif()->setValue(uif_kDisplayFormat, registerValue);
-		return reg_kOK;
-	}
-	
-	if(registerAddress == reg_kDisplayInteger){
-		uif()->setValue(uif_kDisplayInteger, registerValue);
-		return reg_kOK;
-	}
-	
-	if(registerAddress == reg_kDisplayString){	
-		uif()->setValue(uif_kDisplayString, registerValue);
-		return reg_kOK;
-	}
-	
-	if(registerAddress == reg_kDisplayString + 1){	
-		uif()->setValue(uif_kDisplayString + 1, registerValue);
-		return reg_kOK;
+	if(registerAddress >= reg_mapSize) return reg_kAddressInvalid;
+
+	Register* i = &reg_map[registerAddress];
+	setValueFunction setFunc = i->device()->setValue;
+
+	if(setFunc){
+		setFunc(i->reference, registerValue);
+	} else {
+		return reg_kAddressInvalid;
 	}
 
-	if(registerAddress == reg_kDisplayString + 2){
-		uif()->setValue(uif_kDisplayString + 2, registerValue);
-		return reg_kOK;
-	}
-
-	if(registerAddress == reg_kDisplayString + 3){
-		uif()->setValue(uif_kDisplayString + 3, registerValue);
-		return reg_kOK;
-	}
-
-	
-	if(registerAddress == reg_kOutput1){
-		pwm()->setValue(pwm_kOutput1, registerValue);
-		return reg_kOK;
-	}
-	
-	if(registerAddress == reg_kOutput2){
-		pwm()->setValue(pwm_kOutput2, registerValue);
-		return reg_kOK;
-	}
-	
-	if(registerAddress >= reg_kEEPROM){
-		ee()->setValue(registerAddress - reg_kEEPROM, registerValue);
-		return reg_kOK;
-	}
-
-	return reg_kAddressInvalid;
+	return reg_kOK;
 }
 
 
-uint8_t reg_getRegister(uint16_t registerAddress, int16_t* registerValue)
+uint8_t reg_getRegister(uint8_t registerAddress, int16_t* registerValue)
 {
-	if(registerAddress == reg_kKeypad){
-		*registerValue = uif()->getValue(uif_kKeypad);
-		return reg_kOK;
+	if(registerAddress >= reg_mapSize) return reg_kAddressInvalid;
+
+	Register* i = &reg_map[registerAddress];
+	getValueFunction getFunc = i->device()->getValue;
+
+	if(getFunc){
+		*registerValue = getFunc(i->reference);
+	} else {
+		return reg_kAddressInvalid;
 	}
-	if(registerAddress == reg_kInput1){
-		*registerValue = adc()->getValue(adc_kInput1);
-		return reg_kOK;
-	}
-	if(registerAddress == reg_kInput2){
-		*registerValue = adc()->getValue(adc_kInput2);
-		return reg_kOK;
-	}
-	if(registerAddress == reg_kInputI2C){
-		*registerValue = i2c()->getValue(i2c_kInput);
-		return reg_kOK;
-	}
-	if(registerAddress == reg_kPhilips1){
-		*registerValue = ntcPhilips()->getValue(adc_kInput1);
-		return reg_kOK;
-	}
-	if(registerAddress == reg_kPhilips2){
-		*registerValue = ntcPhilips()->getValue(adc_kInput2);
-		return reg_kOK;
-	}
-	if(registerAddress == reg_kHoneywell1){
-		*registerValue = ntcHoneywell()->getValue(adc_kInput1);
-		return reg_kOK;
-	}
-	if(registerAddress == reg_kHoneywell2){
-		*registerValue = ntcHoneywell()->getValue(adc_kInput2);
-		return reg_kOK;
-	}
-	if(registerAddress == reg_kCounter1){
-		*registerValue = adc()->getValue(adc_kCounter1);
-		return reg_kOK;
-	}
-	if(registerAddress == reg_kCounter2){
-		*registerValue = adc()->getValue(adc_kCounter2);
-		return reg_kOK;
-	}
-	if(registerAddress == reg_kFrequency1){
-		*registerValue = adc()->getValue(adc_kFrequency1);
-		return reg_kOK;
-	}	
-	if(registerAddress == reg_kFrequency2){
-		*registerValue = adc()->getValue(adc_kFrequency2);
-		return reg_kOK;
-	}	
-	if(registerAddress >= reg_kEEPROM){
-		*registerValue = ee()->getValue(registerAddress - reg_kEEPROM);
-		return reg_kOK;
-	}
-	return reg_kAddressInvalid;
+
+	return reg_kOK;
 }
 
 
 uint8_t reg_update(void)
 {
-	static uint8_t seconds = 0;
-	
+	static uint8_t ticks = 0;
 
+	// limit update to every 1/4 second
+	uint8_t newticks = bios_ticks & 0b11000000;
 	
-	if(seconds != bios_seconds){
-		seconds = bios_seconds;
-		ntcPhilips()->update(adc_kInput1);
-		ntcPhilips()->update(adc_kInput2);
-		i2c()->update(i2c_kInput);
+	if(ticks != newticks){
+		ticks = newticks;
 
+		Register* i = reg_map;
+		while(*i->device){
+			updateFunction updateFunc = i->device()->update;
+			if(updateFunc) updateFunc(i->reference);
+			i++;
+		}
 	}
 	return reg_kOK;
 }

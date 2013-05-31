@@ -4,13 +4,13 @@
 #include <stdint.h>
 
 enum itoa_format {
-	itoa_kUnit = 0,
-	itoa_kDeci,
-	itoa_kCenti,
-	itoa_kMilli,
-	itoa_kBool,
-	itoa_kTwoDigits,
-	itoa_kTime,
+	Unit = 0,
+	Deci,
+	Centi,
+	Milli,
+	Bool,
+	TwoDigits,
+	Time,
 };
 
 enum itoa_constants {

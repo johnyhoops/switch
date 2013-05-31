@@ -11,13 +11,15 @@ enum uif_reference {
 	uif_kKeypad = 0,
 	uif_kDisplayFormat,
 	uif_kDisplayInteger,
-	uif_kDisplayString,
-
+	uif_kDisplayString1,
+	uif_kDisplayString2,
+	uif_kDisplayString3,
+	uif_kDisplayString4
 };
 
 enum uif_format{
-	uif_kNoFlash = 0,
-	uif_kFlash = 128
+	NoFlash = 0,
+	Flash = 128
 };
 
 HAL* uif(void);

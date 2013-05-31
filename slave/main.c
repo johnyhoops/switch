@@ -1,31 +1,33 @@
 #include "util/delay.h"
+#include "avr/wdt.h"
 
 #include "modbus.h"
-#include "bios.h"
 #include "reg.h"
 
-#define kRevision "R 11"
+#define kRevision 13
 
 
 void delay(uint16_t ms)
 {
-	while(ms--){
-		_delay_ms(1);
-	}
+	while(ms--) _delay_ms(1);
 }
 
 
 int main(void)
 {
-
-	modbus_init();
+	wdt_enable(WDTO_2S);
+	reg_init();
 	
-	//reg_setDisplay(kRevision);
+	reg_setRegister(DisplayInteger, kRevision);
 	delay(1000);
-	//reg_setDisplay("");
+	reg_setRegister(DisplayString, 0);
 	
+	modbus_init();
+
 	while(1){	
 		reg_update();
+		if(SREG & 0b10000000) wdt_reset();
+		delay(100);
 	}
 
 	return 0;

@@ -24,8 +24,8 @@ i = 0
 while True:
 	
 	#value = instrument.read_register(11, 0, signed=True) # Registernumber, number of decimals
-	#instrument.write_registers(16, [ 3, i]);
-	instrument.write_registers(1, [i]);
+	#instrument.write_register(16, 0);
+	#instrument.write_registers(0, [i]);
 	i = i + 5
 	if i > 255:
 		i = 0
@@ -35,11 +35,11 @@ while True:
 	#instrument.write_registers(16, [0]);
 	
 	
-	##instrument.write_registers(34, [0x412e, 0x422e , 0x0043]);
+	#instrument.write_registers(17, [0x412e, 0x422e , 0x0043]);
 	
-	#instrument.write_registers(34, [1, 666]);
+	instrument.write_registers(14, [1, 666]);
 	
-	value = instrument.read_registers(10, 1);
+	value = instrument.read_registers(12, 1);
 	print(value)
 	time.sleep(.05)
 	

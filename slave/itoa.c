@@ -44,7 +44,7 @@ int _itoa(char* str, uint8_t format, int16_t value)
       value -= 100;
       digit++;
   }
-  if (format == itoa_kMilli){
+  if (format == Milli){
       if (enable_digits == 0) *str++ = '0';
       *str++ = '.';
       enable_digits = 1;
@@ -60,19 +60,19 @@ int _itoa(char* str, uint8_t format, int16_t value)
     value -= 10;
     digit++;
   }
-  if (format == itoa_kCenti){
+  if (format == Centi){
     if (enable_digits == 0) *str++ = '0';
     *str++ = '.';
     enable_digits = 1;
   }
-  if((digit != '0') || (enable_digits != 0)  || (format == itoa_kTwoDigits) ) {
+  if((digit != '0') || (enable_digits != 0)  || (format == TwoDigits) ) {
     *str++ = digit;
     enable_digits = 1;
   }
 
   // do 1's
   digit = '0' + value;
-  if (format == itoa_kDeci){
+  if (format == Deci){
     if (enable_digits == 0) *str++ = '0';
     *str++ = '.';
   }
@@ -90,12 +90,12 @@ uint8_t itoa_toString(char* str, int16_t value, uint8_t format)
 {
 	int16_t hours = 0;
 
-	if(format == itoa_kTime){
+	if(format == Time){
 		while (value >= 60) {++hours ; value -= 60;}
-		str += _itoa(str, itoa_kTwoDigits, hours);
+		str += _itoa(str, TwoDigits, hours);
 		*str++ = '.'; 
-		_itoa(str, itoa_kTwoDigits, value);
-	} else if(format == itoa_kBool) {
+		_itoa(str, TwoDigits, value);
+	} else if(format == Bool) {
 		if(value) strcpy(str, "on"); else strcpy(str, "off");
 	} else {
 		_itoa(str, format, value);

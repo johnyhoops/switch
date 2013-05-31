@@ -3,44 +3,59 @@
 
 #include <stdint.h>
 
-#define reg_kOK 								0
-#define reg_kAddressInvalid 		1
-
-#define reg_kSlaveAddress 			0
-#define reg_kOutput1 						1
-#define reg_kOutput2 						2
-
-#define reg_kInput1 						8
-#define reg_kInput2							9
-#define reg_kInputI2C						10
-#define reg_kKeypad							11
-#define reg_kCounter1						12
-#define reg_kFrequency1					13
-#define reg_kCounter2						14
-#define reg_kFrequency2					15
-#define reg_kPhilips1						16
-#define reg_kPhilips2						17
-#define reg_kHoneywell1					18
-#define reg_kHoneywell2					19
+#ifdef __cplusplus
+extern "C"{
+#endif
 
 
-#define reg_kDisplayFormat 			32
-#define reg_kDisplayInteger			33
-#define reg_kDisplayString			34
+enum reg_errors {
+	reg_kOK = 0,
+	reg_kAddressInvalid
+};
 
+enum reg_registers {
 
+	Output1 = 0,			// digital outputs
+	Output2,
+	Input1,					// analog inputs
+	Input2,
+	InputI2C,
 
-#define reg_kEEPROM							64
+	Philips1,				// processed analog inputs
+	Philips2,
+	Honeywell1,
+	Honeywell2,
+	Counter1,				// processed digital inputs
 
-#define reg_kFlash							128
-#define reg_kFlashMask					(reg_kFlash - 1)
+	Counter2,
+	Frequency1,
+	Frequency2,
+	Keypad,					// user interface
+	DisplayIntegerFormat,
 
-#define reg_kSlaveAddressEEPROM 0
+	DisplayInteger,
+	DisplayStringFormat,
+	DisplayString,
+	DisplayString2,
+	DisplayString3,
 
-void reg_init(void);
+	DisplayString4,
+	SlaveAddress,			// eeprom storage
+	Eeprom1,
+	Eeprom2,
+	Eeprom3,
+};
+
+uint8_t reg_init(void);
 uint8_t reg_update(void);
-void reg_setDisplay(char* str);
-uint8_t reg_setRegister(uint16_t registerAddress, int16_t registerValue);
-uint8_t reg_getRegister(uint16_t registerAddress, int16_t* registerValue);
+
+uint8_t reg_setRegister(uint8_t registerAddress, int16_t registerValue);
+uint8_t reg_getRegister(uint8_t registerAddress, int16_t* registerValue);
+
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
+
 
 #endif

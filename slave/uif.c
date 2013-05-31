@@ -47,7 +47,7 @@ void uif_setDisplay(char* str)
 			segments = seg_getSegments(*str);
 		}
 		segmentBuffer[segmentBufferIndex] = segments;
-		if((format & uif_kFlash) == 0){
+		if((format & Flash) == 0){
 			segmentBuffer[segmentBufferIndex + uif_kNumberOfDigits] = segments;
 		}
 		if(++segmentBufferIndex > 3){
@@ -69,16 +69,16 @@ static void setValue(uint8_t reference, int16_t value)
 	}
 
 	if(reference == uif_kDisplayInteger){
-		itoa_toString(buffer, value, format & ~uif_kFlash);
+		itoa_toString(buffer, value, format & ~Flash);
 		uif_setDisplay(buffer);
 		return;
 	}
 
-	if(reference == uif_kDisplayString){
+	if(reference == uif_kDisplayString1){
 		bufferPointer = buffer;
 	}
 
-	if(reference >= uif_kDisplayString){
+	if(reference >= uif_kDisplayString1){
 		*bufferPointer++ = asm_lo(value);
 		if(asm_lo(value) == 0){
 			uif_setDisplay(buffer);

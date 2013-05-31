@@ -7,6 +7,14 @@ extern "C"{
 
 #include "hal.h"
 
+enum ee_reference {
+	ee_SlaveAddress = 0,
+	ee_eeprom1,
+	ee_eeprom2,
+	ee_eeprom3,
+};
+
+
 HAL* ee(void);
 
 #ifdef __cplusplus

@@ -23,6 +23,8 @@ static void init(uint8_t reference)
 	ADMUX = adc_channel | (1 << REFS0);	// AVCC for AREF and ADCx
 	ADCSRA |= (1 << ADSC);				// start conversion
 
+	sei();	// enable interrupts
+
 	while(adc_channel == 0);			// wait for first conversions to complete
 	while(adc_channel == 1);
 }
@@ -65,10 +67,10 @@ ISR(ADC_vect)
 
 	if(seconds != bios_seconds){
 		seconds = bios_seconds;
-		*(result + 4) = *(result + 2) - *(result + 6);
-		*(result + 5) = *(result + 3) - *(result + 7);
-		*(result + 6) = *(result + 2);
-		*(result + 7) = *(result + 3);
+		adc_result[4] = adc_result[2] - adc_result[6];
+		adc_result[5] = adc_result[3] - adc_result[7];
+		adc_result[6] = adc_result[2];
+		adc_result[7] = adc_result[3];
 	}
 
 	adc_channel ^= 0x01;
