@@ -1,0 +1,163 @@
+   1               		.file	"ee.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   9               		.text
+  10               	.Ltext0:
+  92               	setValue:
+  93               		.stabd	46,0,0
+   1:../libraries/Switch/ee.c **** #include <avr/eeprom.h>
+   2:../libraries/Switch/ee.c **** 
+   3:../libraries/Switch/ee.c **** #include "ee.h"
+   4:../libraries/Switch/ee.c **** 
+   5:../libraries/Switch/ee.c **** 
+   6:../libraries/Switch/ee.c **** int16_t eeprom_get(int16_t address)
+   7:../libraries/Switch/ee.c **** {
+   8:../libraries/Switch/ee.c **** 	return (int16_t)eeprom_read_word((uint16_t*)(address << 1));
+   9:../libraries/Switch/ee.c **** }
+  10:../libraries/Switch/ee.c **** 
+  11:../libraries/Switch/ee.c **** 
+  12:../libraries/Switch/ee.c **** int16_t eeprom_set(int16_t address, int16_t value)
+  13:../libraries/Switch/ee.c **** {
+  14:../libraries/Switch/ee.c **** 	eeprom_write_word((uint16_t*)(address << 1), (uint16_t)value);
+  15:../libraries/Switch/ee.c **** 	return 0;
+  16:../libraries/Switch/ee.c **** }
+  17:../libraries/Switch/ee.c **** 
+  18:../libraries/Switch/ee.c **** static int16_t getValue(uint8_t reference)
+  19:../libraries/Switch/ee.c **** {
+  20:../libraries/Switch/ee.c **** 	return (int16_t)eeprom_read_word((uint16_t*)((uint16_t)reference << 1));
+  21:../libraries/Switch/ee.c **** }
+  22:../libraries/Switch/ee.c **** 
+  23:../libraries/Switch/ee.c **** static void setValue(uint8_t reference, int16_t value)
+  24:../libraries/Switch/ee.c **** {
+  95               	.LM0:
+  96               	.LFBB1:
+  97               	/* prologue: function */
+  98               	/* frame size = 0 */
+  99               	/* stack size = 0 */
+ 100               	.L__stack_usage = 0
+  25:../libraries/Switch/ee.c **** 	eeprom_write_word((uint16_t*)((uint16_t)reference << 1), (uint16_t)value);
+ 102               	.LM1:
+ 103 0000 90E0      		ldi r25,0
+ 104 0002 880F      		lsl r24
+ 105 0004 991F      		rol r25
+ 106 0006 00C0      		rjmp __eewr_word_m8
+ 108               	.Lscope1:
+ 110               		.stabd	78,0,0
+ 114               	getValue:
+ 115               		.stabd	46,0,0
+  19:../libraries/Switch/ee.c **** {
+ 117               	.LM2:
+ 118               	.LFBB2:
+ 119               	/* prologue: function */
+ 120               	/* frame size = 0 */
+ 121               	/* stack size = 0 */
+ 122               	.L__stack_usage = 0
+  20:../libraries/Switch/ee.c **** 	return (int16_t)eeprom_read_word((uint16_t*)((uint16_t)reference << 1));
+ 124               	.LM3:
+ 125 0008 90E0      		ldi r25,0
+ 126 000a 880F      		lsl r24
+ 127 000c 991F      		rol r25
+ 128 000e 00C0      		rjmp __eerd_word_m8
+ 130               	.Lscope2:
+ 132               		.stabd	78,0,0
+ 135               	.global	eeprom_get
+ 137               	eeprom_get:
+ 138               		.stabd	46,0,0
+   7:../libraries/Switch/ee.c **** {
+ 140               	.LM4:
+ 141               	.LFBB3:
+ 142               	/* prologue: function */
+ 143               	/* frame size = 0 */
+ 144               	/* stack size = 0 */
+ 145               	.L__stack_usage = 0
+   8:../libraries/Switch/ee.c **** 	return (int16_t)eeprom_read_word((uint16_t*)(address << 1));
+ 147               	.LM5:
+ 148 0010 880F      		lsl r24
+ 149 0012 991F      		rol r25
+ 150 0014 00C0      		rjmp __eerd_word_m8
+ 152               	.Lscope3:
+ 154               		.stabd	78,0,0
+ 158               	.global	eeprom_set
+ 160               	eeprom_set:
+ 161               		.stabd	46,0,0
+  13:../libraries/Switch/ee.c **** {
+ 163               	.LM6:
+ 164               	.LFBB4:
+ 165               	/* prologue: function */
+ 166               	/* frame size = 0 */
+ 167               	/* stack size = 0 */
+ 168               	.L__stack_usage = 0
+  14:../libraries/Switch/ee.c **** 	eeprom_write_word((uint16_t*)(address << 1), (uint16_t)value);
+ 170               	.LM7:
+ 171 0016 880F      		lsl r24
+ 172 0018 991F      		rol r25
+ 173 001a 00D0      		rcall __eewr_word_m8
+  16:../libraries/Switch/ee.c **** }
+ 175               	.LM8:
+ 176 001c 80E0      		ldi r24,0
+ 177 001e 90E0      		ldi r25,0
+ 178 0020 0895      		ret
+ 180               	.Lscope4:
+ 182               		.stabd	78,0,0
+ 184               	.global	ee
+ 186               	ee:
+ 187               		.stabd	46,0,0
+  26:../libraries/Switch/ee.c **** }
+  27:../libraries/Switch/ee.c **** 
+  28:../libraries/Switch/ee.c **** 
+  29:../libraries/Switch/ee.c **** HAL eeHAL = {
+  30:../libraries/Switch/ee.c **** 	0,
+  31:../libraries/Switch/ee.c **** 	0,
+  32:../libraries/Switch/ee.c **** 	getValue,
+  33:../libraries/Switch/ee.c **** 	setValue
+  34:../libraries/Switch/ee.c **** };
+  35:../libraries/Switch/ee.c **** 
+  36:../libraries/Switch/ee.c **** 
+  37:../libraries/Switch/ee.c **** HAL* ee(void)
+  38:../libraries/Switch/ee.c **** {
+ 189               	.LM9:
+ 190               	.LFBB5:
+ 191               	/* prologue: function */
+ 192               	/* frame size = 0 */
+ 193               	/* stack size = 0 */
+ 194               	.L__stack_usage = 0
+  39:../libraries/Switch/ee.c **** 	return &eeHAL;
+  40:../libraries/Switch/ee.c **** }
+ 196               	.LM10:
+ 197 0022 80E0      		ldi r24,lo8(eeHAL)
+ 198 0024 90E0      		ldi r25,hi8(eeHAL)
+ 199 0026 0895      		ret
+ 201               	.Lscope5:
+ 203               		.stabd	78,0,0
+ 204               	.global	eeHAL
+ 205               		.section	.rodata
+ 208               	eeHAL:
+ 209 0000 0000      		.word	0
+ 210 0002 0000      		.word	0
+ 211 0004 0000      		.word	gs(getValue)
+ 212 0006 0000      		.word	gs(setValue)
+ 214               		.text
+ 216               	.Letext0:
+ 217               		.ident	"GCC: (GNU) 4.7.2"
+ 218               	.global __do_copy_data
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 ee.c
+     /tmp/ccehUnTO.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccehUnTO.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccehUnTO.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccehUnTO.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccehUnTO.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccehUnTO.s:92     .text:0000000000000000 setValue
+     /tmp/ccehUnTO.s:114    .text:0000000000000008 getValue
+     /tmp/ccehUnTO.s:137    .text:0000000000000010 eeprom_get
+     /tmp/ccehUnTO.s:160    .text:0000000000000016 eeprom_set
+     /tmp/ccehUnTO.s:186    .text:0000000000000022 ee
+     /tmp/ccehUnTO.s:208    .rodata:0000000000000000 eeHAL
+
+UNDEFINED SYMBOLS
+__eewr_word_m8
+__eerd_word_m8
+__do_copy_data

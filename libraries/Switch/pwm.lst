@@ -1,0 +1,212 @@
+   1               		.file	"pwm.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   9               		.text
+  10               	.Ltext0:
+  85               	init:
+  86               		.stabd	46,0,0
+   1:../libraries/Switch/pwm.c **** #include <avr/io.h>
+   2:../libraries/Switch/pwm.c **** 
+   3:../libraries/Switch/pwm.c **** #include "pwm.h"
+   4:../libraries/Switch/pwm.c **** 
+   5:../libraries/Switch/pwm.c **** 
+   6:../libraries/Switch/pwm.c **** static void init(uint8_t reference)
+   7:../libraries/Switch/pwm.c **** {
+  88               	.LM0:
+  89               	.LFBB1:
+  90               	/* prologue: function */
+  91               	/* frame size = 0 */
+  92               	/* stack size = 0 */
+  93               	.L__stack_usage = 0
+   8:../libraries/Switch/pwm.c **** 	DDRB |= (1 << PORTB2) | (1 << PORTB1);
+  95               	.LM1:
+  96 0000 87B3      		in r24,0x17
+  97 0002 8660      		ori r24,lo8(6)
+  98 0004 87BB      		out 0x17,r24
+   9:../libraries/Switch/pwm.c **** 	TCCR1B = (1 << CS11) | (1 << CS10);
+ 100               	.LM2:
+ 101 0006 83E0      		ldi r24,lo8(3)
+ 102 0008 8EBD      		out 0x2e,r24
+  10:../libraries/Switch/pwm.c **** 	TCCR1A = (1 << WGM10);
+ 104               	.LM3:
+ 105 000a 81E0      		ldi r24,lo8(1)
+ 106 000c 8FBD      		out 0x2f,r24
+ 107 000e 0895      		ret
+ 109               	.Lscope1:
+ 111               		.stabd	78,0,0
+ 116               	setValue:
+ 117               		.stabd	46,0,0
+  11:../libraries/Switch/pwm.c **** }
+  12:../libraries/Switch/pwm.c **** 
+  13:../libraries/Switch/pwm.c **** 
+  14:../libraries/Switch/pwm.c **** static void setValue(uint8_t reference, int16_t value)
+  15:../libraries/Switch/pwm.c **** {
+ 119               	.LM4:
+ 120               	.LFBB2:
+ 121               	/* prologue: function */
+ 122               	/* frame size = 0 */
+ 123               	/* stack size = 0 */
+ 124               	.L__stack_usage = 0
+  16:../libraries/Switch/pwm.c **** 	if(reference == pwm_kOutput1){
+ 126               	.LM5:
+ 127 0010 8130      		cpi r24,lo8(1)
+ 128 0012 01F4      		brne .L3
+  17:../libraries/Switch/pwm.c **** 		if(value <= 0){
+  18:../libraries/Switch/pwm.c **** 			TCCR1A &= ~(1 << COM1B1);
+ 130               	.LM6:
+ 131 0014 8FB5      		in r24,0x2f
+  17:../libraries/Switch/pwm.c **** 		if(value <= 0){
+ 133               	.LM7:
+ 134 0016 1616      		cp __zero_reg__,r22
+ 135 0018 1706      		cpc __zero_reg__,r23
+ 136 001a 04F0      		brlt .L4
+ 138               	.LM8:
+ 139 001c 8F7D      		andi r24,lo8(-33)
+ 140 001e 8FBD      		out 0x2f,r24
+  19:../libraries/Switch/pwm.c **** 			PORTB &= ~(1 << PORTB2);
+ 142               	.LM9:
+ 143 0020 C298      		cbi 0x18,2
+ 144 0022 0895      		ret
+ 145               	.L4:
+  20:../libraries/Switch/pwm.c **** 		} else if(value >= 255){
+ 147               	.LM10:
+ 148 0024 6F3F      		cpi r22,-1
+ 149 0026 7105      		cpc r23,__zero_reg__
+ 150 0028 04F0      		brlt .L6
+  21:../libraries/Switch/pwm.c **** 			TCCR1A &= ~(1 << COM1B1);
+ 152               	.LM11:
+ 153 002a 8F7D      		andi r24,lo8(-33)
+ 154 002c 8FBD      		out 0x2f,r24
+  22:../libraries/Switch/pwm.c **** 			PORTB |= (1 << PORTB2);
+ 156               	.LM12:
+ 157 002e C29A      		sbi 0x18,2
+ 158 0030 0895      		ret
+ 159               	.L6:
+  23:../libraries/Switch/pwm.c **** 		} else {
+  24:../libraries/Switch/pwm.c **** 			TCCR1A |= (1 << COM1B1);
+ 161               	.LM13:
+ 162 0032 8062      		ori r24,lo8(32)
+ 163 0034 8FBD      		out 0x2f,r24
+  25:../libraries/Switch/pwm.c **** 			OCR1B = value;
+ 165               	.LM14:
+ 166 0036 79BD      		out 0x28+1,r23
+ 167 0038 68BD      		out 0x28,r22
+ 168 003a 0895      		ret
+ 169               	.L3:
+  26:../libraries/Switch/pwm.c **** 		}
+  27:../libraries/Switch/pwm.c **** 	}
+  28:../libraries/Switch/pwm.c **** 
+  29:../libraries/Switch/pwm.c **** 	if(reference == pwm_kOutput2){
+ 171               	.LM15:
+ 172 003c 8230      		cpi r24,lo8(2)
+ 173 003e 01F4      		brne .L2
+  30:../libraries/Switch/pwm.c **** 		if(value <= 0){
+  31:../libraries/Switch/pwm.c **** 			TCCR1A &= ~(1 << COM1A1);
+ 175               	.LM16:
+ 176 0040 8FB5      		in r24,0x2f
+  30:../libraries/Switch/pwm.c **** 		if(value <= 0){
+ 178               	.LM17:
+ 179 0042 1616      		cp __zero_reg__,r22
+ 180 0044 1706      		cpc __zero_reg__,r23
+ 181 0046 04F0      		brlt .L8
+ 183               	.LM18:
+ 184 0048 8F77      		andi r24,lo8(127)
+ 185 004a 8FBD      		out 0x2f,r24
+  32:../libraries/Switch/pwm.c **** 			PORTB &= ~(1 << PORTB1);
+ 187               	.LM19:
+ 188 004c C198      		cbi 0x18,1
+ 189 004e 0895      		ret
+ 190               	.L8:
+ 191               	.LBB4:
+ 192               	.LBB5:
+  33:../libraries/Switch/pwm.c **** 		} else if(value >= 255){
+ 194               	.LM20:
+ 195 0050 6F3F      		cpi r22,-1
+ 196 0052 7105      		cpc r23,__zero_reg__
+ 197 0054 04F0      		brlt .L9
+  34:../libraries/Switch/pwm.c **** 			TCCR1A &= ~(1 << COM1A1);
+ 199               	.LM21:
+ 200 0056 8F77      		andi r24,lo8(127)
+ 201 0058 8FBD      		out 0x2f,r24
+  35:../libraries/Switch/pwm.c **** 			PORTB |= (1 << PORTB1);
+ 203               	.LM22:
+ 204 005a C19A      		sbi 0x18,1
+ 205 005c 0895      		ret
+ 206               	.L9:
+  36:../libraries/Switch/pwm.c **** 		} else {
+  37:../libraries/Switch/pwm.c **** 			TCCR1A |= (1 << COM1A1);
+ 208               	.LM23:
+ 209 005e 8068      		ori r24,lo8(-128)
+ 210 0060 8FBD      		out 0x2f,r24
+  38:../libraries/Switch/pwm.c **** 			OCR1A = value;
+ 212               	.LM24:
+ 213 0062 7BBD      		out 0x2a+1,r23
+ 214 0064 6ABD      		out 0x2a,r22
+ 215               	.L2:
+ 216 0066 0895      		ret
+ 217               	.LBE5:
+ 218               	.LBE4:
+ 220               	.Lscope2:
+ 222               		.stabd	78,0,0
+ 224               	.global	pwm
+ 226               	pwm:
+ 227               		.stabd	46,0,0
+  39:../libraries/Switch/pwm.c **** 		}
+  40:../libraries/Switch/pwm.c **** 	}
+  41:../libraries/Switch/pwm.c **** 
+  42:../libraries/Switch/pwm.c **** 	return;
+  43:../libraries/Switch/pwm.c **** }
+  44:../libraries/Switch/pwm.c **** 
+  45:../libraries/Switch/pwm.c **** 
+  46:../libraries/Switch/pwm.c **** HAL pwmHAL = {
+  47:../libraries/Switch/pwm.c **** 	init,
+  48:../libraries/Switch/pwm.c **** 	0,
+  49:../libraries/Switch/pwm.c **** 	0,
+  50:../libraries/Switch/pwm.c **** 	setValue
+  51:../libraries/Switch/pwm.c **** };
+  52:../libraries/Switch/pwm.c **** 
+  53:../libraries/Switch/pwm.c **** 
+  54:../libraries/Switch/pwm.c **** HAL* pwm(void)
+  55:../libraries/Switch/pwm.c **** {
+ 229               	.LM25:
+ 230               	.LFBB3:
+ 231               	/* prologue: function */
+ 232               	/* frame size = 0 */
+ 233               	/* stack size = 0 */
+ 234               	.L__stack_usage = 0
+  56:../libraries/Switch/pwm.c **** 	return &pwmHAL;
+  57:../libraries/Switch/pwm.c **** }
+ 236               	.LM26:
+ 237 0068 80E0      		ldi r24,lo8(pwmHAL)
+ 238 006a 90E0      		ldi r25,hi8(pwmHAL)
+ 239 006c 0895      		ret
+ 241               	.Lscope3:
+ 243               		.stabd	78,0,0
+ 244               	.global	pwmHAL
+ 245               		.section	.rodata
+ 248               	pwmHAL:
+ 249 0000 0000      		.word	gs(init)
+ 250 0002 0000      		.word	0
+ 251 0004 0000      		.word	0
+ 252 0006 0000      		.word	gs(setValue)
+ 254               		.text
+ 256               	.Letext0:
+ 257               		.ident	"GCC: (GNU) 4.7.2"
+ 258               	.global __do_copy_data
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 pwm.c
+     /tmp/ccfv9ZMT.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccfv9ZMT.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccfv9ZMT.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccfv9ZMT.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccfv9ZMT.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccfv9ZMT.s:85     .text:0000000000000000 init
+     /tmp/ccfv9ZMT.s:116    .text:0000000000000010 setValue
+     /tmp/ccfv9ZMT.s:226    .text:0000000000000068 pwm
+     /tmp/ccfv9ZMT.s:248    .rodata:0000000000000000 pwmHAL
+
+UNDEFINED SYMBOLS
+__do_copy_data

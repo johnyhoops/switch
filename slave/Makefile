@@ -9,6 +9,7 @@ AVRDUDE_PORT = /dev/ttyUSB0
 
 ############# Don't need to change below here for most purposes  (Elliot)
 
+
 # Optimization level, can be [0, 1, 2, 3, s]. 0 turns off optimization.
 OPT = s
 
@@ -26,7 +27,7 @@ SRC += uart.c modbus.c ee.c pwm.c uif.c i2c.c reg.c seg.c  twi.c adc.c itoa.c nt
 #SRC += baz.c \
 #xyzzy.c
 
-
+VPATH = ../libraries/Switch
 
 # List Assembler source files here.
 # Make them always end in a capital .S
@@ -35,7 +36,7 @@ ASRC = bios.S asm.S
 
 # List any extra directories to look for include files here.
 #     Each directory must be seperated by a space.
-EXTRAINCDIRS = ../../switch/bios/
+EXTRAINCDIRS = ../libraries/Switch
 
 
 # Optional compiler flags.

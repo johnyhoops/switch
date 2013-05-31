@@ -1,0 +1,208 @@
+   1               		.file	"seg.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   9               		.text
+  10               	.Ltext0:
+  75               	.global	seg_getSegments
+  77               	seg_getSegments:
+  78               		.stabd	46,0,0
+   1:../libraries/Switch/seg.c **** #include <avr/pgmspace.h>
+   2:../libraries/Switch/seg.c **** 
+   3:../libraries/Switch/seg.c **** // map of ascii to 7 segment display
+   4:../libraries/Switch/seg.c **** static const uint8_t PROGMEM charmap[] =
+   5:../libraries/Switch/seg.c **** {
+   6:../libraries/Switch/seg.c **** 	0x00, // ' '
+   7:../libraries/Switch/seg.c **** 	0x81, // '!'
+   8:../libraries/Switch/seg.c **** 	0x44, // '"'
+   9:../libraries/Switch/seg.c **** 	0xC6, // '#'
+  10:../libraries/Switch/seg.c **** 	0x00, // '$', No seven-segment conversion for dollar sign
+  11:../libraries/Switch/seg.c **** 	0xB4, // '%'
+  12:../libraries/Switch/seg.c **** 	0xBE, // '&'
+  13:../libraries/Switch/seg.c **** 	0x40, // '''
+  14:../libraries/Switch/seg.c **** 	0x9C, // '('
+  15:../libraries/Switch/seg.c **** 	0xF0, // ')'
+  16:../libraries/Switch/seg.c **** 	0x00, // '*', No seven-segment conversion for asterix
+  17:../libraries/Switch/seg.c **** 	0x00, // '+', No seven-segment conversion for plus sign
+  18:../libraries/Switch/seg.c **** 	0x01, // ','
+  19:../libraries/Switch/seg.c **** 	0x02, // '-'
+  20:../libraries/Switch/seg.c **** 	0x01, // '.'
+  21:../libraries/Switch/seg.c **** 	0x4A, // '/'
+  22:../libraries/Switch/seg.c **** 	0xFC, // '0'
+  23:../libraries/Switch/seg.c **** 	0x60, // '1'
+  24:../libraries/Switch/seg.c **** 	0xDA, // '2'
+  25:../libraries/Switch/seg.c **** 	0xF2, // '3'
+  26:../libraries/Switch/seg.c **** 	0x66, // '4'
+  27:../libraries/Switch/seg.c **** 	0xB6, // '5'
+  28:../libraries/Switch/seg.c **** 	0xBE, // '6'
+  29:../libraries/Switch/seg.c **** 	0xE0, // '7'
+  30:../libraries/Switch/seg.c **** 	0xFE, // '8'
+  31:../libraries/Switch/seg.c **** 	0xF6, // '9'
+  32:../libraries/Switch/seg.c **** 	0x90, // ':'
+  33:../libraries/Switch/seg.c **** 	0xB0, // ';'
+  34:../libraries/Switch/seg.c **** 	0x86, // '<'
+  35:../libraries/Switch/seg.c **** 	0x12, // '='
+  36:../libraries/Switch/seg.c **** 	0xC2, // '>'
+  37:../libraries/Switch/seg.c **** 	0xCA, // '?'
+  38:../libraries/Switch/seg.c **** 	0xDE, // '@'
+  39:../libraries/Switch/seg.c **** 	0xEE, // 'A'
+  40:../libraries/Switch/seg.c **** 	0x3E, // 'B'
+  41:../libraries/Switch/seg.c **** 	0x9C, // 'C'
+  42:../libraries/Switch/seg.c **** 	0x7A, // 'D'
+  43:../libraries/Switch/seg.c **** 	0x9E, // 'E'
+  44:../libraries/Switch/seg.c **** 	0x8E, // 'F'
+  45:../libraries/Switch/seg.c **** 	0xBC, // 'G'
+  46:../libraries/Switch/seg.c **** 	0x6E, // 'H'
+  47:../libraries/Switch/seg.c **** 	0x60, // 'I'
+  48:../libraries/Switch/seg.c **** 	0x78, // 'J'
+  49:../libraries/Switch/seg.c **** 	0x6E, // 'K'
+  50:../libraries/Switch/seg.c **** 	0x1C, // 'L'
+  51:../libraries/Switch/seg.c **** 	0xA8, // 'M'
+  52:../libraries/Switch/seg.c **** 	0x2A, // 'N'
+  53:../libraries/Switch/seg.c **** 	0x3A, // 'O'
+  54:../libraries/Switch/seg.c **** 	0xCE, // 'P'
+  55:../libraries/Switch/seg.c **** 	0xE6, // 'Q'
+  56:../libraries/Switch/seg.c **** 	0x0A, // 'R'
+  57:../libraries/Switch/seg.c **** 	0xB6, // 'S'
+  58:../libraries/Switch/seg.c **** 	0x1E, // 'T'
+  59:../libraries/Switch/seg.c **** 	0x7C, // 'U'
+  60:../libraries/Switch/seg.c **** 	0x38, // 'V'
+  61:../libraries/Switch/seg.c **** 	0x54, // 'W'
+  62:../libraries/Switch/seg.c **** 	0x6E, // 'X'
+  63:../libraries/Switch/seg.c **** 	0x76, // 'Y'
+  64:../libraries/Switch/seg.c **** 	0xDA, // 'Z'
+  65:../libraries/Switch/seg.c **** 	0x9C, // '['
+  66:../libraries/Switch/seg.c **** 	0x26, // '\'
+  67:../libraries/Switch/seg.c **** 	0xF0, // ']'
+  68:../libraries/Switch/seg.c **** 	0xC4, // '^'
+  69:../libraries/Switch/seg.c **** 	0x10, // '_'
+  70:../libraries/Switch/seg.c **** };
+  71:../libraries/Switch/seg.c **** 
+  72:../libraries/Switch/seg.c **** uint8_t seg_getSegments(uint8_t asciicode)
+  73:../libraries/Switch/seg.c **** {
+  80               	.LM0:
+  81               	.LFBB1:
+  82               	/* prologue: function */
+  83               	/* frame size = 0 */
+  84               	/* stack size = 0 */
+  85               	.L__stack_usage = 0
+  74:../libraries/Switch/seg.c **** 	while (asciicode > '_') asciicode -= 32;
+  87               	.LM1:
+  88 0000 00C0      		rjmp .L2
+  89               	.L3:
+  91               	.LM2:
+  92 0002 8052      		subi r24,lo8(-(-32))
+  93               	.L2:
+  95               	.LM3:
+  96 0004 8036      		cpi r24,lo8(96)
+  97 0006 00F4      		brsh .L3
+  75:../libraries/Switch/seg.c **** 	if (asciicode < ' ') asciicode = ' ';
+  99               	.LM4:
+ 100 0008 8032      		cpi r24,lo8(32)
+ 101 000a 00F4      		brsh .L4
+ 102 000c 80E2      		ldi r24,lo8(32)
+ 103               	.L4:
+  76:../libraries/Switch/seg.c **** 	asciicode -= ' ';
+ 105               	.LM5:
+ 106 000e 8052      		subi r24,lo8(-(-32))
+ 107               	.LBB2:
+  77:../libraries/Switch/seg.c **** 	return pgm_read_byte(charmap + asciicode);
+ 109               	.LM6:
+ 110 0010 E82F      		mov r30,r24
+ 111 0012 F0E0      		ldi r31,0
+ 112 0014 E050      		subi r30,lo8(-(charmap))
+ 113 0016 F040      		sbci r31,hi8(-(charmap))
+ 114               	/* #APP */
+ 115               	 ;  77 "../libraries/Switch/seg.c" 1
+ 116 0018 8491      		lpm r24, Z
+ 117               		
+ 118               	 ;  0 "" 2
+ 119               	/* #NOAPP */
+ 120               	.LBE2:
+  78:../libraries/Switch/seg.c **** }
+ 122               	.LM7:
+ 123 001a 0895      		ret
+ 125               	.Lscope1:
+ 127               		.stabd	78,0,0
+ 128               		.section	.progmem.data,"a",@progbits
+ 131               	charmap:
+ 132 0000 00        		.byte	0
+ 133 0001 81        		.byte	-127
+ 134 0002 44        		.byte	68
+ 135 0003 C6        		.byte	-58
+ 136 0004 00        		.byte	0
+ 137 0005 B4        		.byte	-76
+ 138 0006 BE        		.byte	-66
+ 139 0007 40        		.byte	64
+ 140 0008 9C        		.byte	-100
+ 141 0009 F0        		.byte	-16
+ 142 000a 00        		.byte	0
+ 143 000b 00        		.byte	0
+ 144 000c 01        		.byte	1
+ 145 000d 02        		.byte	2
+ 146 000e 01        		.byte	1
+ 147 000f 4A        		.byte	74
+ 148 0010 FC        		.byte	-4
+ 149 0011 60        		.byte	96
+ 150 0012 DA        		.byte	-38
+ 151 0013 F2        		.byte	-14
+ 152 0014 66        		.byte	102
+ 153 0015 B6        		.byte	-74
+ 154 0016 BE        		.byte	-66
+ 155 0017 E0        		.byte	-32
+ 156 0018 FE        		.byte	-2
+ 157 0019 F6        		.byte	-10
+ 158 001a 90        		.byte	-112
+ 159 001b B0        		.byte	-80
+ 160 001c 86        		.byte	-122
+ 161 001d 12        		.byte	18
+ 162 001e C2        		.byte	-62
+ 163 001f CA        		.byte	-54
+ 164 0020 DE        		.byte	-34
+ 165 0021 EE        		.byte	-18
+ 166 0022 3E        		.byte	62
+ 167 0023 9C        		.byte	-100
+ 168 0024 7A        		.byte	122
+ 169 0025 9E        		.byte	-98
+ 170 0026 8E        		.byte	-114
+ 171 0027 BC        		.byte	-68
+ 172 0028 6E        		.byte	110
+ 173 0029 60        		.byte	96
+ 174 002a 78        		.byte	120
+ 175 002b 6E        		.byte	110
+ 176 002c 1C        		.byte	28
+ 177 002d A8        		.byte	-88
+ 178 002e 2A        		.byte	42
+ 179 002f 3A        		.byte	58
+ 180 0030 CE        		.byte	-50
+ 181 0031 E6        		.byte	-26
+ 182 0032 0A        		.byte	10
+ 183 0033 B6        		.byte	-74
+ 184 0034 1E        		.byte	30
+ 185 0035 7C        		.byte	124
+ 186 0036 38        		.byte	56
+ 187 0037 54        		.byte	84
+ 188 0038 6E        		.byte	110
+ 189 0039 76        		.byte	118
+ 190 003a DA        		.byte	-38
+ 191 003b 9C        		.byte	-100
+ 192 003c 26        		.byte	38
+ 193 003d F0        		.byte	-16
+ 194 003e C4        		.byte	-60
+ 195 003f 10        		.byte	16
+ 197               		.text
+ 199               	.Letext0:
+ 200               		.ident	"GCC: (GNU) 4.7.2"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 seg.c
+     /tmp/cciXBVYc.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/cciXBVYc.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/cciXBVYc.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/cciXBVYc.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/cciXBVYc.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/cciXBVYc.s:77     .text:0000000000000000 seg_getSegments
+     /tmp/cciXBVYc.s:131    .progmem.data:0000000000000000 charmap
+
+NO UNDEFINED SYMBOLS

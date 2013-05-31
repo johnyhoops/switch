@@ -1,0 +1,477 @@
+   1               		.file	"uif.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   9               		.text
+  10               	.Ltext0:
+  87               	getValue:
+  88               		.stabd	46,0,0
+   1:../libraries/Switch/uif.c **** #include <string.h>
+   2:../libraries/Switch/uif.c **** 
+   3:../libraries/Switch/uif.c **** #include "bios.h"
+   4:../libraries/Switch/uif.c **** #include "itoa.h"
+   5:../libraries/Switch/uif.c **** #include "uif.h"
+   6:../libraries/Switch/uif.c **** #include "seg.h"
+   7:../libraries/Switch/uif.c **** #include "asm.h"
+   8:../libraries/Switch/uif.c **** 
+   9:../libraries/Switch/uif.c **** enum uif_constants {
+  10:../libraries/Switch/uif.c **** 	uif_kSegmentDP = 1,
+  11:../libraries/Switch/uif.c **** 	uif_kNumberOfDigits = 4,
+  12:../libraries/Switch/uif.c **** 	uif_kSegmentBufferSize = 8,
+  13:../libraries/Switch/uif.c **** };
+  14:../libraries/Switch/uif.c **** 
+  15:../libraries/Switch/uif.c **** static uint8_t format = 0;
+  16:../libraries/Switch/uif.c **** 
+  17:../libraries/Switch/uif.c **** 
+  18:../libraries/Switch/uif.c **** static void init(uint8_t reference)
+  19:../libraries/Switch/uif.c **** {
+  20:../libraries/Switch/uif.c **** 	bios_init();
+  21:../libraries/Switch/uif.c **** }
+  22:../libraries/Switch/uif.c **** 
+  23:../libraries/Switch/uif.c **** 
+  24:../libraries/Switch/uif.c **** static int16_t getValue(uint8_t reference)
+  25:../libraries/Switch/uif.c **** {
+  90               	.LM0:
+  91               	.LFBB1:
+  92               	/* prologue: function */
+  93               	/* frame size = 0 */
+  94               	/* stack size = 0 */
+  95               	.L__stack_usage = 0
+  26:../libraries/Switch/uif.c **** 	if(reference == uif_kKeypad){
+  97               	.LM1:
+  98 0000 8111      		cpse r24,__zero_reg__
+  99 0002 00C0      		rjmp .L3
+  27:../libraries/Switch/uif.c **** 		return bios_getKey();
+ 101               	.LM2:
+ 102 0004 00D0      		rcall bios_getKey
+ 103 0006 282F      		mov r18,r24
+ 104 0008 30E0      		ldi r19,0
+ 105 000a 00C0      		rjmp .L2
+ 106               	.L3:
+  28:../libraries/Switch/uif.c **** 	}
+  29:../libraries/Switch/uif.c **** 	return 0;
+ 108               	.LM3:
+ 109 000c 20E0      		ldi r18,0
+ 110 000e 30E0      		ldi r19,0
+ 111               	.L2:
+  30:../libraries/Switch/uif.c **** }
+ 113               	.LM4:
+ 114 0010 C901      		movw r24,r18
+ 115 0012 0895      		ret
+ 117               	.Lscope1:
+ 119               		.stabd	78,0,0
+ 123               	init:
+ 124               		.stabd	46,0,0
+  19:../libraries/Switch/uif.c **** {
+ 126               	.LM5:
+ 127               	.LFBB2:
+ 128               	/* prologue: function */
+ 129               	/* frame size = 0 */
+ 130               	/* stack size = 0 */
+ 131               	.L__stack_usage = 0
+  20:../libraries/Switch/uif.c **** 	bios_init();
+ 133               	.LM6:
+ 134 0014 00C0      		rjmp bios_init
+ 136               	.Lscope2:
+ 138               		.stabd	78,0,0
+ 140               	.global	uif_setDisplay
+ 142               	uif_setDisplay:
+ 143               		.stabd	46,0,0
+  31:../libraries/Switch/uif.c **** 
+  32:../libraries/Switch/uif.c **** 
+  33:../libraries/Switch/uif.c **** void uif_setDisplay(char* str)
+  34:../libraries/Switch/uif.c **** {
+ 145               	.LM7:
+ 146               	.LFBB3:
+ 147 0016 DF92      		push r13
+ 148 0018 EF92      		push r14
+ 149 001a FF92      		push r15
+ 150 001c 0F93      		push r16
+ 151 001e 1F93      		push r17
+ 152 0020 CF93      		push r28
+ 153 0022 DF93      		push r29
+ 154 0024 CDB7      		in r28,__SP_L__
+ 155 0026 DEB7      		in r29,__SP_H__
+ 156 0028 2897      		sbiw r28,8
+ 157 002a 0FB6      		in __tmp_reg__,__SREG__
+ 158 002c F894      		cli
+ 159 002e DEBF      		out __SP_H__,r29
+ 160 0030 0FBE      		out __SREG__,__tmp_reg__
+ 161 0032 CDBF      		out __SP_L__,r28
+ 162               	/* prologue: function */
+ 163               	/* frame size = 8 */
+ 164               	/* stack size = 15 */
+ 165               	.L__stack_usage = 15
+  35:../libraries/Switch/uif.c **** 	uint8_t segmentBuffer[uif_kSegmentBufferSize];
+  36:../libraries/Switch/uif.c **** 	uint8_t segmentBufferIndex = 0;
+  37:../libraries/Switch/uif.c **** 	uint8_t segments;
+  38:../libraries/Switch/uif.c **** 
+  39:../libraries/Switch/uif.c **** 	memset(segmentBuffer, 0, uif_kSegmentBufferSize);
+ 167               	.LM8:
+ 168 0034 FE01      		movw r30,r28
+ 169 0036 3196      		adiw r30,1
+ 170 0038 28E0      		ldi r18,lo8(8)
+ 171 003a DF01      		movw r26,r30
+ 172               		0:
+ 173 003c 1D92      		st X+,__zero_reg__
+ 174 003e 2A95      		dec r18
+ 175 0040 01F4      		brne 0b
+ 176 0042 8C01      		movw r16,r24
+  36:../libraries/Switch/uif.c **** 	uint8_t segmentBufferIndex = 0;
+ 178               	.LM9:
+ 179 0044 D12C      		mov r13,__zero_reg__
+  40:../libraries/Switch/uif.c **** 	while(*str){
+  41:../libraries/Switch/uif.c **** 		if(*str == '.'){
+  42:../libraries/Switch/uif.c **** 			if(segmentBufferIndex != 0){
+  43:../libraries/Switch/uif.c **** 				segmentBufferIndex--;
+  44:../libraries/Switch/uif.c **** 			}
+  45:../libraries/Switch/uif.c **** 			segments = segmentBuffer[segmentBufferIndex] | uif_kSegmentDP;
+ 181               	.LM10:
+ 182 0046 7F01      		movw r14,r30
+  40:../libraries/Switch/uif.c **** 	while(*str){
+ 184               	.LM11:
+ 185 0048 00C0      		rjmp .L6
+ 186               	.L11:
+  41:../libraries/Switch/uif.c **** 		if(*str == '.'){
+ 188               	.LM12:
+ 189 004a 8E32      		cpi r24,lo8(46)
+ 190 004c 01F4      		brne .L7
+  42:../libraries/Switch/uif.c **** 			if(segmentBufferIndex != 0){
+ 192               	.LM13:
+ 193 004e D110      		cpse r13,__zero_reg__
+  43:../libraries/Switch/uif.c **** 				segmentBufferIndex--;
+ 195               	.LM14:
+ 196 0050 DA94      		dec r13
+ 197               	.L8:
+ 199               	.LM15:
+ 200 0052 F701      		movw r30,r14
+ 201 0054 ED0D      		add r30,r13
+ 202 0056 F11D      		adc r31,__zero_reg__
+ 203 0058 8081      		ld r24,Z
+ 204 005a 8160      		ori r24,lo8(1)
+ 205 005c 00C0      		rjmp .L9
+ 206               	.L7:
+  46:../libraries/Switch/uif.c **** 		} else {
+  47:../libraries/Switch/uif.c **** 			segments = seg_getSegments(*str);
+ 208               	.LM16:
+ 209 005e 00D0      		rcall seg_getSegments
+ 210               	.L9:
+  48:../libraries/Switch/uif.c **** 		}
+  49:../libraries/Switch/uif.c **** 		segmentBuffer[segmentBufferIndex] = segments;
+ 212               	.LM17:
+ 213 0060 2D2D      		mov r18,r13
+ 214 0062 30E0      		ldi r19,0
+ 215 0064 F701      		movw r30,r14
+ 216 0066 E20F      		add r30,r18
+ 217 0068 F31F      		adc r31,r19
+ 218 006a 8083      		st Z,r24
+  50:../libraries/Switch/uif.c **** 		if((format & Flash) == 0){
+ 220               	.LM18:
+ 221 006c 9091 0000 		lds r25,format
+ 222 0070 97FD      		sbrc r25,7
+ 223 0072 00C0      		rjmp .L10
+  51:../libraries/Switch/uif.c **** 			segmentBuffer[segmentBufferIndex + uif_kNumberOfDigits] = segments;
+ 225               	.LM19:
+ 226 0074 E5E0      		ldi r30,lo8(5)
+ 227 0076 F0E0      		ldi r31,0
+ 228 0078 EC0F      		add r30,r28
+ 229 007a FD1F      		adc r31,r29
+ 230 007c E20F      		add r30,r18
+ 231 007e F31F      		adc r31,r19
+ 232 0080 8083      		st Z,r24
+ 233               	.L10:
+  52:../libraries/Switch/uif.c **** 		}
+  53:../libraries/Switch/uif.c **** 		if(++segmentBufferIndex > 3){
+ 235               	.LM20:
+ 236 0082 D394      		inc r13
+ 237 0084 B3E0      		ldi r27,lo8(3)
+ 238 0086 BD15      		cp r27,r13
+ 239 0088 00F4      		brsh .L6
+ 240               	.L12:
+  54:../libraries/Switch/uif.c **** 			break;
+  55:../libraries/Switch/uif.c **** 		}
+  56:../libraries/Switch/uif.c **** 		str++;
+  57:../libraries/Switch/uif.c **** 	}
+  58:../libraries/Switch/uif.c **** 	memcpy(bios_segment, segmentBuffer, uif_kSegmentBufferSize);
+ 242               	.LM21:
+ 243 008a 88E0      		ldi r24,lo8(8)
+ 244 008c FE01      		movw r30,r28
+ 245 008e 3196      		adiw r30,1
+ 246 0090 A0E0      		ldi r26,lo8(bios_segment)
+ 247 0092 B0E0      		ldi r27,hi8(bios_segment)
+ 248               		0:
+ 249 0094 0190      		ld r0,Z+
+ 250 0096 0D92      		st X+,r0
+ 251 0098 8A95      		dec r24
+ 252 009a 01F4      		brne 0b
+ 253 009c 00C0      		rjmp .L17
+ 254               	.L6:
+  40:../libraries/Switch/uif.c **** 	while(*str){
+ 256               	.LM22:
+ 257 009e F801      		movw r30,r16
+ 258 00a0 8191      		ld r24,Z+
+ 259 00a2 8F01      		movw r16,r30
+ 260 00a4 8111      		cpse r24,__zero_reg__
+ 261 00a6 00C0      		rjmp .L11
+ 262 00a8 00C0      		rjmp .L12
+ 263               	.L17:
+ 264               	/* epilogue start */
+  59:../libraries/Switch/uif.c **** }
+ 266               	.LM23:
+ 267 00aa 2896      		adiw r28,8
+ 268 00ac 0FB6      		in __tmp_reg__,__SREG__
+ 269 00ae F894      		cli
+ 270 00b0 DEBF      		out __SP_H__,r29
+ 271 00b2 0FBE      		out __SREG__,__tmp_reg__
+ 272 00b4 CDBF      		out __SP_L__,r28
+ 273 00b6 DF91      		pop r29
+ 274 00b8 CF91      		pop r28
+ 275 00ba 1F91      		pop r17
+ 276 00bc 0F91      		pop r16
+ 277 00be FF90      		pop r15
+ 278 00c0 EF90      		pop r14
+ 279 00c2 DF90      		pop r13
+ 280 00c4 0895      		ret
+ 287               	.Lscope3:
+ 289               		.stabd	78,0,0
+ 293               	setValue:
+ 294               		.stabd	46,0,0
+  60:../libraries/Switch/uif.c **** 
+  61:../libraries/Switch/uif.c **** static void setValue(uint8_t reference, int16_t value)
+  62:../libraries/Switch/uif.c **** {
+ 296               	.LM24:
+ 297               	.LFBB4:
+ 298 00c6 0F93      		push r16
+ 299 00c8 1F93      		push r17
+ 300 00ca CF93      		push r28
+ 301 00cc DF93      		push r29
+ 302               	/* prologue: function */
+ 303               	/* frame size = 0 */
+ 304               	/* stack size = 4 */
+ 305               	.L__stack_usage = 4
+ 306 00ce EB01      		movw r28,r22
+  63:../libraries/Switch/uif.c **** 	static char buffer[uif_kSegmentBufferSize];
+  64:../libraries/Switch/uif.c **** 	static char* bufferPointer = 0;
+  65:../libraries/Switch/uif.c **** 
+  66:../libraries/Switch/uif.c **** 	if(reference == uif_kDisplayFormat){
+ 308               	.LM25:
+ 309 00d0 8130      		cpi r24,lo8(1)
+ 310 00d2 01F4      		brne .L19
+  67:../libraries/Switch/uif.c **** 		format = value;
+ 312               	.LM26:
+ 313 00d4 6093 0000 		sts format,r22
+  68:../libraries/Switch/uif.c **** 		return;
+ 315               	.LM27:
+ 316 00d8 00C0      		rjmp .L18
+ 317               	.L19:
+  69:../libraries/Switch/uif.c **** 	}
+  70:../libraries/Switch/uif.c **** 
+  71:../libraries/Switch/uif.c **** 	if(reference == uif_kDisplayInteger){
+ 319               	.LM28:
+ 320 00da 8230      		cpi r24,lo8(2)
+ 321 00dc 01F4      		brne .L21
+  72:../libraries/Switch/uif.c **** 		itoa_toString(buffer, value, format & ~Flash);
+ 323               	.LM29:
+ 324 00de 4091 0000 		lds r20,format
+ 325 00e2 4F77      		andi r20,lo8(127)
+ 326 00e4 80E0      		ldi r24,lo8(buffer.1595)
+ 327 00e6 90E0      		ldi r25,hi8(buffer.1595)
+ 328 00e8 00D0      		rcall itoa_toString
+  73:../libraries/Switch/uif.c **** 		uif_setDisplay(buffer);
+ 330               	.LM30:
+ 331 00ea 80E0      		ldi r24,lo8(buffer.1595)
+ 332 00ec 90E0      		ldi r25,hi8(buffer.1595)
+ 333               	/* epilogue start */
+  74:../libraries/Switch/uif.c **** 		return;
+  75:../libraries/Switch/uif.c **** 	}
+  76:../libraries/Switch/uif.c **** 
+  77:../libraries/Switch/uif.c **** 	if(reference == uif_kDisplayString1){
+  78:../libraries/Switch/uif.c **** 		bufferPointer = buffer;
+  79:../libraries/Switch/uif.c **** 	}
+  80:../libraries/Switch/uif.c **** 
+  81:../libraries/Switch/uif.c **** 	if(reference >= uif_kDisplayString1){
+  82:../libraries/Switch/uif.c **** 		*bufferPointer++ = asm_lo(value);
+  83:../libraries/Switch/uif.c **** 		if(asm_lo(value) == 0){
+  84:../libraries/Switch/uif.c **** 			uif_setDisplay(buffer);
+  85:../libraries/Switch/uif.c **** 		} else {
+  86:../libraries/Switch/uif.c **** 			*bufferPointer++ = asm_hi(value);
+  87:../libraries/Switch/uif.c **** 			if(asm_hi(value) == 0){
+  88:../libraries/Switch/uif.c **** 				uif_setDisplay(buffer);
+  89:../libraries/Switch/uif.c **** 			}
+  90:../libraries/Switch/uif.c **** 		}
+  91:../libraries/Switch/uif.c **** 		if(bufferPointer >= &buffer[uif_kSegmentBufferSize]){
+  92:../libraries/Switch/uif.c **** 			bufferPointer = buffer;
+  93:../libraries/Switch/uif.c **** 		}
+  94:../libraries/Switch/uif.c **** 		return;
+  95:../libraries/Switch/uif.c **** 	}
+  96:../libraries/Switch/uif.c **** }
+ 335               	.LM31:
+ 336 00ee DF91      		pop r29
+ 337 00f0 CF91      		pop r28
+ 338 00f2 1F91      		pop r17
+ 339 00f4 0F91      		pop r16
+  73:../libraries/Switch/uif.c **** 		uif_setDisplay(buffer);
+ 341               	.LM32:
+ 342 00f6 00C0      		rjmp uif_setDisplay
+ 343               	.L21:
+  77:../libraries/Switch/uif.c **** 	if(reference == uif_kDisplayString1){
+ 345               	.LM33:
+ 346 00f8 8330      		cpi r24,lo8(3)
+ 347 00fa 01F4      		brne .L22
+  78:../libraries/Switch/uif.c **** 		bufferPointer = buffer;
+ 349               	.LM34:
+ 350 00fc 20E0      		ldi r18,lo8(buffer.1595)
+ 351 00fe 30E0      		ldi r19,hi8(buffer.1595)
+ 352 0100 3093 0000 		sts bufferPointer.1596+1,r19
+ 353 0104 2093 0000 		sts bufferPointer.1596,r18
+ 354 0108 00C0      		rjmp .L23
+ 355               	.L22:
+  81:../libraries/Switch/uif.c **** 	if(reference >= uif_kDisplayString1){
+ 357               	.LM35:
+ 358 010a 8330      		cpi r24,lo8(3)
+ 359 010c 00F0      		brlo .L18
+ 360               	.L23:
+ 361               	.LBB4:
+ 362               	.LBB5:
+  82:../libraries/Switch/uif.c **** 		*bufferPointer++ = asm_lo(value);
+ 364               	.LM36:
+ 365 010e 0091 0000 		lds r16,bufferPointer.1596
+ 366 0112 1091 0000 		lds r17,bufferPointer.1596+1
+ 367 0116 CE01      		movw r24,r28
+ 368 0118 00D0      		rcall asm_lo
+ 369 011a F801      		movw r30,r16
+ 370 011c 8193      		st Z+,r24
+ 371 011e F093 0000 		sts bufferPointer.1596+1,r31
+ 372 0122 E093 0000 		sts bufferPointer.1596,r30
+  83:../libraries/Switch/uif.c **** 		if(asm_lo(value) == 0){
+ 374               	.LM37:
+ 375 0126 CE01      		movw r24,r28
+ 376 0128 00D0      		rcall asm_lo
+ 377 012a 8111      		cpse r24,__zero_reg__
+ 378 012c 00C0      		rjmp .L24
+ 379               	.L26:
+  84:../libraries/Switch/uif.c **** 			uif_setDisplay(buffer);
+ 381               	.LM38:
+ 382 012e 80E0      		ldi r24,lo8(buffer.1595)
+ 383 0130 90E0      		ldi r25,hi8(buffer.1595)
+ 384 0132 00D0      		rcall uif_setDisplay
+ 385 0134 00C0      		rjmp .L25
+ 386               	.L24:
+  86:../libraries/Switch/uif.c **** 			*bufferPointer++ = asm_hi(value);
+ 388               	.LM39:
+ 389 0136 0091 0000 		lds r16,bufferPointer.1596
+ 390 013a 1091 0000 		lds r17,bufferPointer.1596+1
+ 391 013e CE01      		movw r24,r28
+ 392 0140 00D0      		rcall asm_hi
+ 393 0142 F801      		movw r30,r16
+ 394 0144 8193      		st Z+,r24
+ 395 0146 F093 0000 		sts bufferPointer.1596+1,r31
+ 396 014a E093 0000 		sts bufferPointer.1596,r30
+  87:../libraries/Switch/uif.c **** 			if(asm_hi(value) == 0){
+ 398               	.LM40:
+ 399 014e CE01      		movw r24,r28
+ 400 0150 00D0      		rcall asm_hi
+ 401 0152 8823      		tst r24
+ 402 0154 01F0      		breq .L26
+ 403               	.L25:
+  91:../libraries/Switch/uif.c **** 		if(bufferPointer >= &buffer[uif_kSegmentBufferSize]){
+ 405               	.LM41:
+ 406 0156 8091 0000 		lds r24,bufferPointer.1596
+ 407 015a 9091 0000 		lds r25,bufferPointer.1596+1
+ 408 015e 8050      		subi r24,lo8(buffer.1595+8)
+ 409 0160 9040      		sbci r25,hi8(buffer.1595+8)
+ 410 0162 00F0      		brlo .L18
+  92:../libraries/Switch/uif.c **** 			bufferPointer = buffer;
+ 412               	.LM42:
+ 413 0164 80E0      		ldi r24,lo8(buffer.1595)
+ 414 0166 90E0      		ldi r25,hi8(buffer.1595)
+ 415 0168 9093 0000 		sts bufferPointer.1596+1,r25
+ 416 016c 8093 0000 		sts bufferPointer.1596,r24
+ 417               	.L18:
+ 418               	/* epilogue start */
+ 419               	.LBE5:
+ 420               	.LBE4:
+ 422               	.LM43:
+ 423 0170 DF91      		pop r29
+ 424 0172 CF91      		pop r28
+ 425 0174 1F91      		pop r17
+ 426 0176 0F91      		pop r16
+ 427 0178 0895      		ret
+ 433               	.Lscope4:
+ 435               		.stabd	78,0,0
+ 437               	.global	uif
+ 439               	uif:
+ 440               		.stabd	46,0,0
+  97:../libraries/Switch/uif.c **** 
+  98:../libraries/Switch/uif.c **** 
+  99:../libraries/Switch/uif.c **** HAL uifHAL = {
+ 100:../libraries/Switch/uif.c **** 	init,
+ 101:../libraries/Switch/uif.c **** 	0,
+ 102:../libraries/Switch/uif.c **** 	getValue,
+ 103:../libraries/Switch/uif.c **** 	setValue
+ 104:../libraries/Switch/uif.c **** };
+ 105:../libraries/Switch/uif.c **** 
+ 106:../libraries/Switch/uif.c **** 
+ 107:../libraries/Switch/uif.c **** HAL* uif(void)
+ 108:../libraries/Switch/uif.c **** {
+ 442               	.LM44:
+ 443               	.LFBB5:
+ 444               	/* prologue: function */
+ 445               	/* frame size = 0 */
+ 446               	/* stack size = 0 */
+ 447               	.L__stack_usage = 0
+ 109:../libraries/Switch/uif.c **** 	return &uifHAL;
+ 110:../libraries/Switch/uif.c **** }
+ 449               	.LM45:
+ 450 017a 80E0      		ldi r24,lo8(uifHAL)
+ 451 017c 90E0      		ldi r25,hi8(uifHAL)
+ 452 017e 0895      		ret
+ 454               	.Lscope5:
+ 456               		.stabd	78,0,0
+ 457               	.global	uifHAL
+ 458               		.section	.rodata
+ 461               	uifHAL:
+ 462 0000 0000      		.word	gs(init)
+ 463 0002 0000      		.word	0
+ 464 0004 0000      		.word	gs(getValue)
+ 465 0006 0000      		.word	gs(setValue)
+ 466               		.local	format
+ 467               		.comm	format,1,1
+ 468               		.local	buffer.1595
+ 469               		.comm	buffer.1595,8,1
+ 470               		.local	bufferPointer.1596
+ 471               		.comm	bufferPointer.1596,2,1
+ 474               		.text
+ 476               	.Letext0:
+ 477               		.ident	"GCC: (GNU) 4.7.2"
+ 478               	.global __do_copy_data
+ 479               	.global __do_clear_bss
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 uif.c
+     /tmp/ccFMaMm0.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccFMaMm0.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccFMaMm0.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccFMaMm0.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccFMaMm0.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccFMaMm0.s:87     .text:0000000000000000 getValue
+     /tmp/ccFMaMm0.s:123    .text:0000000000000014 init
+     /tmp/ccFMaMm0.s:142    .text:0000000000000016 uif_setDisplay
+                             .bss:0000000000000000 format
+     /tmp/ccFMaMm0.s:293    .text:00000000000000c6 setValue
+     /tmp/ccFMaMm0.s:467    .bss:0000000000000001 buffer.1595
+     /tmp/ccFMaMm0.s:469    .bss:0000000000000009 bufferPointer.1596
+     /tmp/ccFMaMm0.s:439    .text:000000000000017a uif
+     /tmp/ccFMaMm0.s:461    .rodata:0000000000000000 uifHAL
+
+UNDEFINED SYMBOLS
+bios_getKey
+bios_init
+seg_getSegments
+bios_segment
+itoa_toString
+asm_lo
+asm_hi
+__do_copy_data
+__do_clear_bss

@@ -1,0 +1,465 @@
+   1               		.file	"reg.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   9               		.text
+  10               	.Ltext0:
+ 119               	.global	reg_init
+ 121               	reg_init:
+ 122               		.stabd	46,0,0
+   1:../libraries/Switch/reg.c **** #include <string.h>
+   2:../libraries/Switch/reg.c **** 
+   3:../libraries/Switch/reg.c **** #include <avr/io.h>
+   4:../libraries/Switch/reg.c **** #include <avr/eeprom.h>
+   5:../libraries/Switch/reg.c **** 
+   6:../libraries/Switch/reg.c **** #include "reg.h"
+   7:../libraries/Switch/reg.c **** 
+   8:../libraries/Switch/reg.c **** 
+   9:../libraries/Switch/reg.c **** static uint8_t reg_mapSize = 0;
+  10:../libraries/Switch/reg.c **** 
+  11:../libraries/Switch/reg.c **** typedef const struct {
+  12:../libraries/Switch/reg.c **** 	getHAL 	device;
+  13:../libraries/Switch/reg.c **** 	uint8_t reference;
+  14:../libraries/Switch/reg.c **** } Register;
+  15:../libraries/Switch/reg.c **** 
+  16:../libraries/Switch/reg.c **** 
+  17:../libraries/Switch/reg.c **** Register reg_map[] = {
+  18:../libraries/Switch/reg.c **** 	{pwm, pwm_kOutput1},
+  19:../libraries/Switch/reg.c **** 	{pwm, pwm_kOutput2},
+  20:../libraries/Switch/reg.c **** 	{adc, adc_kInput1},
+  21:../libraries/Switch/reg.c **** 	{adc, adc_kInput2},
+  22:../libraries/Switch/reg.c **** 	{i2c, i2c_kInput},
+  23:../libraries/Switch/reg.c **** 
+  24:../libraries/Switch/reg.c **** 	{ntcPhilips, adc_kInput1},
+  25:../libraries/Switch/reg.c **** 	{ntcPhilips, adc_kInput2},
+  26:../libraries/Switch/reg.c **** 	{ntcHoneywell, adc_kInput1},
+  27:../libraries/Switch/reg.c **** 	{ntcHoneywell, adc_kInput2},
+  28:../libraries/Switch/reg.c **** 	{adc, adc_kCounter1},
+  29:../libraries/Switch/reg.c **** 
+  30:../libraries/Switch/reg.c **** 	{adc, adc_kCounter2},
+  31:../libraries/Switch/reg.c **** 	{adc, adc_kFrequency1},
+  32:../libraries/Switch/reg.c **** 	{adc, adc_kFrequency2},
+  33:../libraries/Switch/reg.c **** 	{uif, uif_kKeypad},
+  34:../libraries/Switch/reg.c **** 	{uif, uif_kDisplayFormat},
+  35:../libraries/Switch/reg.c **** 
+  36:../libraries/Switch/reg.c **** 	{uif, uif_kDisplayInteger},
+  37:../libraries/Switch/reg.c **** 	{uif, uif_kDisplayFormat},
+  38:../libraries/Switch/reg.c **** 	{uif, uif_kDisplayString1},
+  39:../libraries/Switch/reg.c **** 	{uif, uif_kDisplayString2},
+  40:../libraries/Switch/reg.c **** 	{uif, uif_kDisplayString3},
+  41:../libraries/Switch/reg.c **** 
+  42:../libraries/Switch/reg.c **** 	{uif, uif_kDisplayString4},
+  43:../libraries/Switch/reg.c **** 	{ee, ee_SlaveAddress},
+  44:../libraries/Switch/reg.c **** 	{ee, ee_eeprom1},
+  45:../libraries/Switch/reg.c **** 	{ee, ee_eeprom2},
+  46:../libraries/Switch/reg.c **** 	{ee, ee_eeprom3},
+  47:../libraries/Switch/reg.c **** 
+  48:../libraries/Switch/reg.c **** 	{0}
+  49:../libraries/Switch/reg.c **** };
+  50:../libraries/Switch/reg.c **** 
+  51:../libraries/Switch/reg.c **** 
+  52:../libraries/Switch/reg.c **** uint8_t reg_init(void)
+  53:../libraries/Switch/reg.c **** {
+ 124               	.LM0:
+ 125               	.LFBB1:
+ 126 0000 CF93      		push r28
+ 127 0002 DF93      		push r29
+ 128               	/* prologue: function */
+ 129               	/* frame size = 0 */
+ 130               	/* stack size = 2 */
+ 131               	.L__stack_usage = 2
+  54:../libraries/Switch/reg.c **** 	Register* i = reg_map;
+  55:../libraries/Switch/reg.c **** 	reg_mapSize = 0;
+ 133               	.LM1:
+ 134 0004 1092 0000 		sts reg_mapSize,__zero_reg__
+  54:../libraries/Switch/reg.c **** 	Register* i = reg_map;
+ 136               	.LM2:
+ 137 0008 C0E0      		ldi r28,lo8(reg_map)
+ 138 000a D0E0      		ldi r29,hi8(reg_map)
+  56:../libraries/Switch/reg.c **** 
+  57:../libraries/Switch/reg.c **** 	while(*i->device){
+ 140               	.LM3:
+ 141 000c 00C0      		rjmp .L2
+ 142               	.L4:
+ 143               	.LBB2:
+  58:../libraries/Switch/reg.c **** 		initFunction initFunc = i->device()->init;
+ 145               	.LM4:
+ 146 000e 0995      		icall
+ 147 0010 DC01      		movw r26,r24
+ 148 0012 ED91      		ld r30,X+
+ 149 0014 FC91      		ld r31,X
+  59:../libraries/Switch/reg.c **** 		if(initFunc) initFunc(i->reference);
+ 151               	.LM5:
+ 152 0016 3097      		sbiw r30,0
+ 153 0018 01F0      		breq .L3
+ 155               	.LM6:
+ 156 001a 8A81      		ldd r24,Y+2
+ 157 001c 0995      		icall
+ 158               	.L3:
+  60:../libraries/Switch/reg.c **** 		reg_mapSize++;
+ 160               	.LM7:
+ 161 001e 8091 0000 		lds r24,reg_mapSize
+ 162 0022 8F5F      		subi r24,lo8(-(1))
+ 163 0024 8093 0000 		sts reg_mapSize,r24
+  61:../libraries/Switch/reg.c **** 		i++;
+ 165               	.LM8:
+ 166 0028 2396      		adiw r28,3
+ 167               	.L2:
+ 168               	.LBE2:
+  57:../libraries/Switch/reg.c **** 	while(*i->device){
+ 170               	.LM9:
+ 171 002a E881      		ld r30,Y
+ 172 002c F981      		ldd r31,Y+1
+ 173 002e 3097      		sbiw r30,0
+ 174 0030 01F4      		brne .L4
+  62:../libraries/Switch/reg.c **** 	}
+  63:../libraries/Switch/reg.c **** 
+  64:../libraries/Switch/reg.c **** 	return reg_kOK;
+  65:../libraries/Switch/reg.c **** }
+ 176               	.LM10:
+ 177 0032 80E0      		ldi r24,0
+ 178               	/* epilogue start */
+ 179 0034 DF91      		pop r29
+ 180 0036 CF91      		pop r28
+ 181 0038 0895      		ret
+ 189               	.Lscope1:
+ 191               		.stabd	78,0,0
+ 195               	.global	reg_setRegister
+ 197               	reg_setRegister:
+ 198               		.stabd	46,0,0
+  66:../libraries/Switch/reg.c **** 
+  67:../libraries/Switch/reg.c **** 
+  68:../libraries/Switch/reg.c **** uint8_t reg_setRegister(uint8_t registerAddress, int16_t registerValue)
+  69:../libraries/Switch/reg.c **** {
+ 200               	.LM11:
+ 201               	.LFBB2:
+ 202 003a 0F93      		push r16
+ 203 003c 1F93      		push r17
+ 204 003e CF93      		push r28
+ 205 0040 DF93      		push r29
+ 206 0042 00D0      		rcall .
+ 207 0044 CDB7      		in r28,__SP_L__
+ 208 0046 DEB7      		in r29,__SP_H__
+ 209               	/* prologue: function */
+ 210               	/* frame size = 2 */
+ 211               	/* stack size = 6 */
+ 212               	.L__stack_usage = 6
+  70:../libraries/Switch/reg.c **** 	if(registerAddress >= reg_mapSize) return reg_kAddressInvalid;
+ 214               	.LM12:
+ 215 0048 9091 0000 		lds r25,reg_mapSize
+ 216 004c 8917      		cp r24,r25
+ 217 004e 00F0      		brlo .L9
+ 218               	.L11:
+ 219 0050 81E0      		ldi r24,lo8(1)
+ 220 0052 00C0      		rjmp .L10
+ 221               	.L9:
+  71:../libraries/Switch/reg.c **** 
+  72:../libraries/Switch/reg.c **** 	Register* i = &reg_map[registerAddress];
+ 223               	.LM13:
+ 224 0054 90E0      		ldi r25,0
+ 225 0056 8C01      		movw r16,r24
+ 226 0058 000F      		lsl r16
+ 227 005a 111F      		rol r17
+ 228 005c 080F      		add r16,r24
+ 229 005e 191F      		adc r17,r25
+ 230 0060 0050      		subi r16,lo8(-(reg_map))
+ 231 0062 1040      		sbci r17,hi8(-(reg_map))
+  73:../libraries/Switch/reg.c **** 	setValueFunction setFunc = i->device()->setValue;
+ 233               	.LM14:
+ 234 0064 D801      		movw r26,r16
+ 235 0066 ED91      		ld r30,X+
+ 236 0068 FC91      		ld r31,X
+ 237 006a 6983      		std Y+1,r22
+ 238 006c 7A83      		std Y+2,r23
+ 239 006e 0995      		icall
+ 240 0070 DC01      		movw r26,r24
+ 241 0072 1696      		adiw r26,6
+ 242 0074 ED91      		ld r30,X+
+ 243 0076 FC91      		ld r31,X
+ 244 0078 1797      		sbiw r26,6+1
+  74:../libraries/Switch/reg.c **** 
+  75:../libraries/Switch/reg.c **** 	if(setFunc){
+ 246               	.LM15:
+ 247 007a 6981      		ldd r22,Y+1
+ 248 007c 7A81      		ldd r23,Y+2
+ 249 007e 3097      		sbiw r30,0
+ 250 0080 01F0      		breq .L11
+  76:../libraries/Switch/reg.c **** 		setFunc(i->reference, registerValue);
+ 252               	.LM16:
+ 253 0082 D801      		movw r26,r16
+ 254 0084 1296      		adiw r26,2
+ 255 0086 8C91      		ld r24,X
+ 256 0088 0995      		icall
+  77:../libraries/Switch/reg.c **** 	} else {
+  78:../libraries/Switch/reg.c **** 		return reg_kAddressInvalid;
+  79:../libraries/Switch/reg.c **** 	}
+  80:../libraries/Switch/reg.c **** 
+  81:../libraries/Switch/reg.c **** 	return reg_kOK;
+ 258               	.LM17:
+ 259 008a 80E0      		ldi r24,0
+ 260               	.L10:
+ 261               	/* epilogue start */
+  82:../libraries/Switch/reg.c **** }
+ 263               	.LM18:
+ 264 008c 0F90      		pop __tmp_reg__
+ 265 008e 0F90      		pop __tmp_reg__
+ 266 0090 DF91      		pop r29
+ 267 0092 CF91      		pop r28
+ 268 0094 1F91      		pop r17
+ 269 0096 0F91      		pop r16
+ 270 0098 0895      		ret
+ 276               	.Lscope2:
+ 278               		.stabd	78,0,0
+ 282               	.global	reg_getRegister
+ 284               	reg_getRegister:
+ 285               		.stabd	46,0,0
+  83:../libraries/Switch/reg.c **** 
+  84:../libraries/Switch/reg.c **** 
+  85:../libraries/Switch/reg.c **** uint8_t reg_getRegister(uint8_t registerAddress, int16_t* registerValue)
+  86:../libraries/Switch/reg.c **** {
+ 287               	.LM19:
+ 288               	.LFBB3:
+ 289 009a 0F93      		push r16
+ 290 009c 1F93      		push r17
+ 291 009e CF93      		push r28
+ 292 00a0 DF93      		push r29
+ 293               	/* prologue: function */
+ 294               	/* frame size = 0 */
+ 295               	/* stack size = 4 */
+ 296               	.L__stack_usage = 4
+ 297 00a2 8B01      		movw r16,r22
+  87:../libraries/Switch/reg.c **** 	if(registerAddress >= reg_mapSize) return reg_kAddressInvalid;
+ 299               	.LM20:
+ 300 00a4 9091 0000 		lds r25,reg_mapSize
+ 301 00a8 8917      		cp r24,r25
+ 302 00aa 00F0      		brlo .L16
+ 303               	.L18:
+ 304 00ac 81E0      		ldi r24,lo8(1)
+ 305 00ae 00C0      		rjmp .L17
+ 306               	.L16:
+  88:../libraries/Switch/reg.c **** 
+  89:../libraries/Switch/reg.c **** 	Register* i = &reg_map[registerAddress];
+ 308               	.LM21:
+ 309 00b0 90E0      		ldi r25,0
+ 310 00b2 EC01      		movw r28,r24
+ 311 00b4 CC0F      		lsl r28
+ 312 00b6 DD1F      		rol r29
+ 313 00b8 C80F      		add r28,r24
+ 314 00ba D91F      		adc r29,r25
+ 315 00bc C050      		subi r28,lo8(-(reg_map))
+ 316 00be D040      		sbci r29,hi8(-(reg_map))
+  90:../libraries/Switch/reg.c **** 	getValueFunction getFunc = i->device()->getValue;
+ 318               	.LM22:
+ 319 00c0 E881      		ld r30,Y
+ 320 00c2 F981      		ldd r31,Y+1
+ 321 00c4 0995      		icall
+ 322 00c6 DC01      		movw r26,r24
+ 323 00c8 1496      		adiw r26,4
+ 324 00ca ED91      		ld r30,X+
+ 325 00cc FC91      		ld r31,X
+ 326 00ce 1597      		sbiw r26,4+1
+  91:../libraries/Switch/reg.c **** 
+  92:../libraries/Switch/reg.c **** 	if(getFunc){
+ 328               	.LM23:
+ 329 00d0 3097      		sbiw r30,0
+ 330 00d2 01F0      		breq .L18
+  93:../libraries/Switch/reg.c **** 		*registerValue = getFunc(i->reference);
+ 332               	.LM24:
+ 333 00d4 8A81      		ldd r24,Y+2
+ 334 00d6 0995      		icall
+ 335 00d8 F801      		movw r30,r16
+ 336 00da 9183      		std Z+1,r25
+ 337 00dc 8083      		st Z,r24
+  94:../libraries/Switch/reg.c **** 	} else {
+  95:../libraries/Switch/reg.c **** 		return reg_kAddressInvalid;
+  96:../libraries/Switch/reg.c **** 	}
+  97:../libraries/Switch/reg.c **** 
+  98:../libraries/Switch/reg.c **** 	return reg_kOK;
+ 339               	.LM25:
+ 340 00de 80E0      		ldi r24,0
+ 341               	.L17:
+ 342               	/* epilogue start */
+  99:../libraries/Switch/reg.c **** }
+ 344               	.LM26:
+ 345 00e0 DF91      		pop r29
+ 346 00e2 CF91      		pop r28
+ 347 00e4 1F91      		pop r17
+ 348 00e6 0F91      		pop r16
+ 349 00e8 0895      		ret
+ 355               	.Lscope3:
+ 357               		.stabd	78,0,0
+ 359               	.global	reg_update
+ 361               	reg_update:
+ 362               		.stabd	46,0,0
+ 100:../libraries/Switch/reg.c **** 
+ 101:../libraries/Switch/reg.c **** 
+ 102:../libraries/Switch/reg.c **** uint8_t reg_update(void)
+ 103:../libraries/Switch/reg.c **** {
+ 364               	.LM27:
+ 365               	.LFBB4:
+ 366 00ea CF93      		push r28
+ 367 00ec DF93      		push r29
+ 368               	/* prologue: function */
+ 369               	/* frame size = 0 */
+ 370               	/* stack size = 2 */
+ 371               	.L__stack_usage = 2
+ 104:../libraries/Switch/reg.c **** 	static uint8_t ticks = 0;
+ 105:../libraries/Switch/reg.c **** 
+ 106:../libraries/Switch/reg.c **** 	// limit update to every 1/4 second
+ 107:../libraries/Switch/reg.c **** 	uint8_t newticks = bios_ticks & 0b11000000;
+ 373               	.LM28:
+ 374 00ee 8091 0000 		lds r24,bios_ticks
+ 375 00f2 807C      		andi r24,lo8(-64)
+ 108:../libraries/Switch/reg.c **** 	
+ 109:../libraries/Switch/reg.c **** 	if(ticks != newticks){
+ 377               	.LM29:
+ 378 00f4 9091 0000 		lds r25,ticks.1717
+ 379 00f8 9817      		cp r25,r24
+ 380 00fa 01F0      		breq .L31
+ 381               	.LBB3:
+ 110:../libraries/Switch/reg.c **** 		ticks = newticks;
+ 383               	.LM30:
+ 384 00fc 8093 0000 		sts ticks.1717,r24
+ 111:../libraries/Switch/reg.c **** 
+ 112:../libraries/Switch/reg.c **** 		Register* i = reg_map;
+ 386               	.LM31:
+ 387 0100 C0E0      		ldi r28,lo8(reg_map)
+ 388 0102 D0E0      		ldi r29,hi8(reg_map)
+ 113:../libraries/Switch/reg.c **** 		while(*i->device){
+ 390               	.LM32:
+ 391 0104 00C0      		rjmp .L24
+ 392               	.L26:
+ 393               	.LBB4:
+ 114:../libraries/Switch/reg.c **** 			updateFunction updateFunc = i->device()->update;
+ 395               	.LM33:
+ 396 0106 0995      		icall
+ 397 0108 DC01      		movw r26,r24
+ 398 010a 1296      		adiw r26,2
+ 399 010c ED91      		ld r30,X+
+ 400 010e FC91      		ld r31,X
+ 401 0110 1397      		sbiw r26,2+1
+ 115:../libraries/Switch/reg.c **** 			if(updateFunc) updateFunc(i->reference);
+ 403               	.LM34:
+ 404 0112 3097      		sbiw r30,0
+ 405 0114 01F0      		breq .L25
+ 407               	.LM35:
+ 408 0116 8A81      		ldd r24,Y+2
+ 409 0118 0995      		icall
+ 410               	.L25:
+ 116:../libraries/Switch/reg.c **** 			i++;
+ 412               	.LM36:
+ 413 011a 2396      		adiw r28,3
+ 414               	.L24:
+ 415               	.LBE4:
+ 113:../libraries/Switch/reg.c **** 		while(*i->device){
+ 417               	.LM37:
+ 418 011c E881      		ld r30,Y
+ 419 011e F981      		ldd r31,Y+1
+ 420 0120 3097      		sbiw r30,0
+ 421 0122 01F4      		brne .L26
+ 422               	.L31:
+ 423               	.LBE3:
+ 117:../libraries/Switch/reg.c **** 		}
+ 118:../libraries/Switch/reg.c **** 	}
+ 119:../libraries/Switch/reg.c **** 	return reg_kOK;
+ 120:../libraries/Switch/reg.c **** }
+ 425               	.LM38:
+ 426 0124 80E0      		ldi r24,0
+ 427               	/* epilogue start */
+ 428 0126 DF91      		pop r29
+ 429 0128 CF91      		pop r28
+ 430 012a 0895      		ret
+ 442               	.Lscope4:
+ 444               		.stabd	78,0,0
+ 445               	.global	reg_map
+ 446               		.section	.rodata
+ 449               	reg_map:
+ 450 0000 0000      		.word	gs(pwm)
+ 451 0002 01        		.byte	1
+ 452 0003 0000      		.word	gs(pwm)
+ 453 0005 02        		.byte	2
+ 454 0006 0000      		.word	gs(adc)
+ 455 0008 01        		.byte	1
+ 456 0009 0000      		.word	gs(adc)
+ 457 000b 02        		.byte	2
+ 458 000c 0000      		.word	gs(i2c)
+ 459 000e 00        		.byte	0
+ 460 000f 0000      		.word	gs(ntcPhilips)
+ 461 0011 01        		.byte	1
+ 462 0012 0000      		.word	gs(ntcPhilips)
+ 463 0014 02        		.byte	2
+ 464 0015 0000      		.word	gs(ntcHoneywell)
+ 465 0017 01        		.byte	1
+ 466 0018 0000      		.word	gs(ntcHoneywell)
+ 467 001a 02        		.byte	2
+ 468 001b 0000      		.word	gs(adc)
+ 469 001d 03        		.byte	3
+ 470 001e 0000      		.word	gs(adc)
+ 471 0020 04        		.byte	4
+ 472 0021 0000      		.word	gs(adc)
+ 473 0023 05        		.byte	5
+ 474 0024 0000      		.word	gs(adc)
+ 475 0026 06        		.byte	6
+ 476 0027 0000      		.word	gs(uif)
+ 477 0029 00        		.byte	0
+ 478 002a 0000      		.word	gs(uif)
+ 479 002c 01        		.byte	1
+ 480 002d 0000      		.word	gs(uif)
+ 481 002f 02        		.byte	2
+ 482 0030 0000      		.word	gs(uif)
+ 483 0032 01        		.byte	1
+ 484 0033 0000      		.word	gs(uif)
+ 485 0035 03        		.byte	3
+ 486 0036 0000      		.word	gs(uif)
+ 487 0038 04        		.byte	4
+ 488 0039 0000      		.word	gs(uif)
+ 489 003b 05        		.byte	5
+ 490 003c 0000      		.word	gs(uif)
+ 491 003e 06        		.byte	6
+ 492 003f 0000      		.word	gs(ee)
+ 493 0041 00        		.byte	0
+ 494 0042 0000      		.word	gs(ee)
+ 495 0044 01        		.byte	1
+ 496 0045 0000      		.word	gs(ee)
+ 497 0047 02        		.byte	2
+ 498 0048 0000      		.word	gs(ee)
+ 499 004a 03        		.byte	3
+ 500 004b 0000      		.word	0
+ 501 004d 00        		.zero	1
+ 502               		.local	reg_mapSize
+ 503               		.comm	reg_mapSize,1,1
+ 504               		.local	ticks.1717
+ 505               		.comm	ticks.1717,1,1
+ 508               		.text
+ 510               	.Letext0:
+ 511               		.ident	"GCC: (GNU) 4.7.2"
+ 512               	.global __do_copy_data
+ 513               	.global __do_clear_bss
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 reg.c
+     /tmp/ccSMIxd9.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccSMIxd9.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccSMIxd9.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccSMIxd9.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccSMIxd9.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccSMIxd9.s:121    .text:0000000000000000 reg_init
+                             .bss:0000000000000000 reg_mapSize
+     /tmp/ccSMIxd9.s:449    .rodata:0000000000000000 reg_map
+     /tmp/ccSMIxd9.s:197    .text:000000000000003a reg_setRegister
+     /tmp/ccSMIxd9.s:284    .text:000000000000009a reg_getRegister
+     /tmp/ccSMIxd9.s:361    .text:00000000000000ea reg_update
+     /tmp/ccSMIxd9.s:503    .bss:0000000000000001 ticks.1717
+
+UNDEFINED SYMBOLS
+bios_ticks
+pwm
+adc
+i2c
+ntcPhilips
+ntcHoneywell
+uif
+ee
+__do_copy_data
+__do_clear_bss

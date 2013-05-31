@@ -1,0 +1,27 @@
+   1               	# 1 "../libraries/Switch/asm.S"
+   1               		.section .text
+   0               	
+   2               		.global asm_htons
+   3               		.global asm_lo
+   4               		.global asm_hi
+   5               	
+   6               	asm_htons:
+   7:../libraries/Switch/asm.S **** 	mov		r18, r24
+   8:../libraries/Switch/asm.S **** 	mov		r24, r25
+   9:../libraries/Switch/asm.S **** 	mov		r25, r18
+  10:../libraries/Switch/asm.S **** 	ret
+  11               	
+  12               	asm_lo:
+  13:../libraries/Switch/asm.S **** 	clr		r25
+  14:../libraries/Switch/asm.S **** 	ret
+  15               	
+  16               	asm_hi:
+  17:../libraries/Switch/asm.S **** 	mov		r24, r25
+  18:../libraries/Switch/asm.S **** 	clr		r25
+  19:../libraries/Switch/asm.S **** 	ret
+DEFINED SYMBOLS
+../libraries/Switch/asm.S:6      .text:0000000000000000 asm_htons
+../libraries/Switch/asm.S:12     .text:0000000000000008 asm_lo
+../libraries/Switch/asm.S:16     .text:000000000000000c asm_hi
+
+NO UNDEFINED SYMBOLS

@@ -1,0 +1,1238 @@
+   1               		.file	"twi.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   9               		.text
+  10               	.Ltext0:
+  78               	.global	twi_init
+  80               	twi_init:
+  81               		.stabd	46,0,0
+   1:../libraries/Switch/twi.c **** /*
+   2:../libraries/Switch/twi.c ****   twi.c - TWI/I2C library for Wiring & Arduino
+   3:../libraries/Switch/twi.c ****   Copyright (c) 2006 Nicholas Zambetti.  All right reserved.
+   4:../libraries/Switch/twi.c **** 
+   5:../libraries/Switch/twi.c ****   This library is free software; you can redistribute it and/or
+   6:../libraries/Switch/twi.c ****   modify it under the terms of the GNU Lesser General Public
+   7:../libraries/Switch/twi.c ****   License as published by the Free Software Foundation; either
+   8:../libraries/Switch/twi.c ****   version 2.1 of the License, or (at your option) any later version.
+   9:../libraries/Switch/twi.c **** 
+  10:../libraries/Switch/twi.c ****   This library is distributed in the hope that it will be useful,
+  11:../libraries/Switch/twi.c ****   but WITHOUT ANY WARRANTY; without even the implied warranty of
+  12:../libraries/Switch/twi.c ****   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  13:../libraries/Switch/twi.c ****   Lesser General Public License for more details.
+  14:../libraries/Switch/twi.c **** 
+  15:../libraries/Switch/twi.c ****   You should have received a copy of the GNU Lesser General Public
+  16:../libraries/Switch/twi.c ****   License along with this library; if not, write to the Free Software
+  17:../libraries/Switch/twi.c ****   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+  18:../libraries/Switch/twi.c **** */
+  19:../libraries/Switch/twi.c **** 
+  20:../libraries/Switch/twi.c **** // #include <math.h>
+  21:../libraries/Switch/twi.c **** #include <stdlib.h>
+  22:../libraries/Switch/twi.c **** #include <inttypes.h>
+  23:../libraries/Switch/twi.c **** #include <avr/io.h>
+  24:../libraries/Switch/twi.c **** #include <avr/interrupt.h>
+  25:../libraries/Switch/twi.c **** #include <compat/twi.h>
+  26:../libraries/Switch/twi.c **** // #include "Arduino.h" // for digitalWrite
+  27:../libraries/Switch/twi.c **** 
+  28:../libraries/Switch/twi.c **** #ifndef cbi
+  29:../libraries/Switch/twi.c **** #define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
+  30:../libraries/Switch/twi.c **** #endif
+  31:../libraries/Switch/twi.c **** 
+  32:../libraries/Switch/twi.c **** #ifndef sbi
+  33:../libraries/Switch/twi.c **** #define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
+  34:../libraries/Switch/twi.c **** #endif
+  35:../libraries/Switch/twi.c **** 
+  36:../libraries/Switch/twi.c **** //#include "pins_arduino.h"
+  37:../libraries/Switch/twi.c **** #include "twi.h"
+  38:../libraries/Switch/twi.c **** 
+  39:../libraries/Switch/twi.c **** static volatile uint8_t twi_state;
+  40:../libraries/Switch/twi.c **** static uint8_t twi_slarw;
+  41:../libraries/Switch/twi.c **** 
+  42:../libraries/Switch/twi.c **** static void (*twi_onSlaveTransmit)(void);
+  43:../libraries/Switch/twi.c **** static void (*twi_onSlaveReceive)(uint8_t*, int);
+  44:../libraries/Switch/twi.c **** 
+  45:../libraries/Switch/twi.c **** static uint8_t twi_masterBuffer[TWI_BUFFER_LENGTH];
+  46:../libraries/Switch/twi.c **** static volatile uint8_t twi_masterBufferIndex;
+  47:../libraries/Switch/twi.c **** static uint8_t twi_masterBufferLength;
+  48:../libraries/Switch/twi.c **** 
+  49:../libraries/Switch/twi.c **** static uint8_t twi_txBuffer[TWI_BUFFER_LENGTH];
+  50:../libraries/Switch/twi.c **** static volatile uint8_t twi_txBufferIndex;
+  51:../libraries/Switch/twi.c **** static volatile uint8_t twi_txBufferLength;
+  52:../libraries/Switch/twi.c **** 
+  53:../libraries/Switch/twi.c **** static uint8_t twi_rxBuffer[TWI_BUFFER_LENGTH];
+  54:../libraries/Switch/twi.c **** static volatile uint8_t twi_rxBufferIndex;
+  55:../libraries/Switch/twi.c **** 
+  56:../libraries/Switch/twi.c **** static volatile uint8_t twi_error;
+  57:../libraries/Switch/twi.c **** 
+  58:../libraries/Switch/twi.c **** /* 
+  59:../libraries/Switch/twi.c ****  * Function twi_init
+  60:../libraries/Switch/twi.c ****  * Desc     readys twi pins and sets twi bitrate
+  61:../libraries/Switch/twi.c ****  * Input    none
+  62:../libraries/Switch/twi.c ****  * Output   none
+  63:../libraries/Switch/twi.c ****  */
+  64:../libraries/Switch/twi.c **** void twi_init(void)
+  65:../libraries/Switch/twi.c **** {
+  83               	.LM0:
+  84               	.LFBB1:
+  85               	/* prologue: function */
+  86               	/* frame size = 0 */
+  87               	/* stack size = 0 */
+  88               	.L__stack_usage = 0
+  66:../libraries/Switch/twi.c ****   // initialize state
+  67:../libraries/Switch/twi.c ****   twi_state = TWI_READY;
+  90               	.LM1:
+  91 0000 1092 0000 		sts twi_state,__zero_reg__
+  68:../libraries/Switch/twi.c ****   
+  69:../libraries/Switch/twi.c ****   // activate internal pullups for twi.
+  70:../libraries/Switch/twi.c ****   //digitalWrite(SDA, 1);
+  71:../libraries/Switch/twi.c ****   //digitalWrite(SCL, 1);
+  72:../libraries/Switch/twi.c **** 
+  73:../libraries/Switch/twi.c ****   // initialize twi prescaler and bit rate
+  74:../libraries/Switch/twi.c ****   cbi(TWSR, TWPS0);
+  93               	.LM2:
+  94 0004 0898      		cbi 0x1,0
+  75:../libraries/Switch/twi.c ****   cbi(TWSR, TWPS1);
+  96               	.LM3:
+  97 0006 0998      		cbi 0x1,1
+  76:../libraries/Switch/twi.c ****   TWBR = ((F_CPU / TWI_FREQ) - 16) / 2;
+  99               	.LM4:
+ 100 0008 80E2      		ldi r24,lo8(32)
+ 101 000a 80B9      		out 0,r24
+  77:../libraries/Switch/twi.c **** 
+  78:../libraries/Switch/twi.c ****   /* twi bit rate formula from atmega128 manual pg 204
+  79:../libraries/Switch/twi.c ****   SCL Frequency = CPU Clock Frequency / (16 + (2 * TWBR))
+  80:../libraries/Switch/twi.c ****   note: TWBR should be 10 or higher for master mode
+  81:../libraries/Switch/twi.c ****   It is 72 for a 16mhz Wiring board with 100kHz TWI */
+  82:../libraries/Switch/twi.c **** 
+  83:../libraries/Switch/twi.c ****   // enable twi module, acks, and twi interrupt
+  84:../libraries/Switch/twi.c ****   TWCR = _BV(TWEN) | _BV(TWIE) | _BV(TWEA);
+ 103               	.LM5:
+ 104 000c 85E4      		ldi r24,lo8(69)
+ 105 000e 86BF      		out 0x36,r24
+ 106 0010 0895      		ret
+ 108               	.Lscope1:
+ 110               		.stabd	78,0,0
+ 113               	.global	twi_setAddress
+ 115               	twi_setAddress:
+ 116               		.stabd	46,0,0
+  85:../libraries/Switch/twi.c **** }
+  86:../libraries/Switch/twi.c **** 
+  87:../libraries/Switch/twi.c **** /* 
+  88:../libraries/Switch/twi.c ****  * Function twi_slaveInit
+  89:../libraries/Switch/twi.c ****  * Desc     sets slave address and enables interrupt
+  90:../libraries/Switch/twi.c ****  * Input    none
+  91:../libraries/Switch/twi.c ****  * Output   none
+  92:../libraries/Switch/twi.c ****  */
+  93:../libraries/Switch/twi.c **** void twi_setAddress(uint8_t address)
+  94:../libraries/Switch/twi.c **** {
+ 118               	.LM6:
+ 119               	.LFBB2:
+ 120               	/* prologue: function */
+ 121               	/* frame size = 0 */
+ 122               	/* stack size = 0 */
+ 123               	.L__stack_usage = 0
+  95:../libraries/Switch/twi.c ****   // set twi slave address (skip over TWGCE bit)
+  96:../libraries/Switch/twi.c ****   TWAR = address << 1;
+ 125               	.LM7:
+ 126 0012 880F      		lsl r24
+ 127 0014 82B9      		out 0x2,r24
+ 128 0016 0895      		ret
+ 130               	.Lscope2:
+ 132               		.stabd	78,0,0
+ 136               	.global	twi_readFrom
+ 138               	twi_readFrom:
+ 139               		.stabd	46,0,0
+  97:../libraries/Switch/twi.c **** }
+  98:../libraries/Switch/twi.c **** 
+  99:../libraries/Switch/twi.c **** /* 
+ 100:../libraries/Switch/twi.c ****  * Function twi_readFrom
+ 101:../libraries/Switch/twi.c ****  * Desc     attempts to become twi bus master and read a
+ 102:../libraries/Switch/twi.c ****  *          series of bytes from a device on the bus
+ 103:../libraries/Switch/twi.c ****  * Input    address: 7bit i2c device address
+ 104:../libraries/Switch/twi.c ****  *          data: pointer to byte array
+ 105:../libraries/Switch/twi.c ****  *          length: number of bytes to read into array
+ 106:../libraries/Switch/twi.c ****  * Output   number of bytes read
+ 107:../libraries/Switch/twi.c ****  */
+ 108:../libraries/Switch/twi.c **** uint8_t twi_readFrom(uint8_t address, uint8_t* data, uint8_t length)
+ 109:../libraries/Switch/twi.c **** {
+ 141               	.LM8:
+ 142               	.LFBB3:
+ 143               	/* prologue: function */
+ 144               	/* frame size = 0 */
+ 145               	/* stack size = 0 */
+ 146               	.L__stack_usage = 0
+ 110:../libraries/Switch/twi.c ****   uint8_t i;
+ 111:../libraries/Switch/twi.c **** 
+ 112:../libraries/Switch/twi.c ****   // ensure data will fit into buffer
+ 113:../libraries/Switch/twi.c ****   if(TWI_BUFFER_LENGTH < length){
+ 148               	.LM9:
+ 149 0018 4132      		cpi r20,lo8(33)
+ 150 001a 00F4      		brsh .L10
+ 151               	.L13:
+ 114:../libraries/Switch/twi.c ****     return 0;
+ 115:../libraries/Switch/twi.c ****   }
+ 116:../libraries/Switch/twi.c **** 
+ 117:../libraries/Switch/twi.c ****   // wait until twi is ready, become master receiver
+ 118:../libraries/Switch/twi.c ****   while(TWI_READY != twi_state){
+ 153               	.LM10:
+ 154 001c 9091 0000 		lds r25,twi_state
+ 155 0020 9111      		cpse r25,__zero_reg__
+ 156 0022 00C0      		rjmp .L13
+ 119:../libraries/Switch/twi.c ****     continue;
+ 120:../libraries/Switch/twi.c ****   }
+ 121:../libraries/Switch/twi.c ****   twi_state = TWI_MRX;
+ 158               	.LM11:
+ 159 0024 91E0      		ldi r25,lo8(1)
+ 160 0026 9093 0000 		sts twi_state,r25
+ 122:../libraries/Switch/twi.c ****   // reset error state (0xFF.. no error occured)
+ 123:../libraries/Switch/twi.c ****   twi_error = 0xFF;
+ 162               	.LM12:
+ 163 002a 9FEF      		ldi r25,lo8(-1)
+ 164 002c 9093 0000 		sts twi_error,r25
+ 124:../libraries/Switch/twi.c **** 
+ 125:../libraries/Switch/twi.c ****   // initialize buffer iteration vars
+ 126:../libraries/Switch/twi.c ****   twi_masterBufferIndex = 0;
+ 166               	.LM13:
+ 167 0030 1092 0000 		sts twi_masterBufferIndex,__zero_reg__
+ 127:../libraries/Switch/twi.c ****   twi_masterBufferLength = length-1;  // This is not intuitive, read on...
+ 169               	.LM14:
+ 170 0034 942F      		mov r25,r20
+ 171 0036 9150      		subi r25,lo8(-(-1))
+ 172 0038 9093 0000 		sts twi_masterBufferLength,r25
+ 128:../libraries/Switch/twi.c ****   // On receive, the previously configured ACK/NACK setting is transmitted in
+ 129:../libraries/Switch/twi.c ****   // response to the received byte before the interrupt is signalled. 
+ 130:../libraries/Switch/twi.c ****   // Therefor we must actually set NACK when the _next_ to last byte is
+ 131:../libraries/Switch/twi.c ****   // received, causing that NACK to be sent in response to receiving the last
+ 132:../libraries/Switch/twi.c ****   // expected byte of data.
+ 133:../libraries/Switch/twi.c **** 
+ 134:../libraries/Switch/twi.c ****   // build sla+w, slave device address + w bit
+ 135:../libraries/Switch/twi.c ****   twi_slarw = TW_READ;
+ 136:../libraries/Switch/twi.c ****   twi_slarw |= address << 1;
+ 174               	.LM15:
+ 175 003c 282F      		mov r18,r24
+ 176 003e 30E0      		ldi r19,0
+ 177 0040 220F      		lsl r18
+ 178 0042 331F      		rol r19
+ 179 0044 2160      		ori r18,1
+ 180 0046 2093 0000 		sts twi_slarw,r18
+ 137:../libraries/Switch/twi.c **** 
+ 138:../libraries/Switch/twi.c ****   // send start condition
+ 139:../libraries/Switch/twi.c ****   TWCR = _BV(TWEN) | _BV(TWIE) | _BV(TWEA) | _BV(TWINT) | _BV(TWSTA);
+ 182               	.LM16:
+ 183 004a 85EE      		ldi r24,lo8(-27)
+ 184 004c 86BF      		out 0x36,r24
+ 185               	.L6:
+ 140:../libraries/Switch/twi.c **** 
+ 141:../libraries/Switch/twi.c ****   // wait for read operation to complete
+ 142:../libraries/Switch/twi.c ****   while(TWI_MRX == twi_state){
+ 187               	.LM17:
+ 188 004e 8091 0000 		lds r24,twi_state
+ 189 0052 8130      		cpi r24,lo8(1)
+ 190 0054 01F0      		breq .L6
+ 143:../libraries/Switch/twi.c ****     continue;
+ 144:../libraries/Switch/twi.c ****   }
+ 145:../libraries/Switch/twi.c **** 
+ 146:../libraries/Switch/twi.c ****   if (twi_masterBufferIndex < length)
+ 192               	.LM18:
+ 193 0056 8091 0000 		lds r24,twi_masterBufferIndex
+ 194 005a 8417      		cp r24,r20
+ 195 005c 00F4      		brsh .L7
+ 147:../libraries/Switch/twi.c ****     length = twi_masterBufferIndex;
+ 197               	.LM19:
+ 198 005e 4091 0000 		lds r20,twi_masterBufferIndex
+ 199               	.L7:
+ 200 0062 20E0      		ldi r18,lo8(twi_masterBuffer)
+ 201 0064 30E0      		ldi r19,hi8(twi_masterBuffer)
+ 202 0066 FB01      		movw r30,r22
+ 148:../libraries/Switch/twi.c **** 
+ 149:../libraries/Switch/twi.c ****   // copy twi buffer to data
+ 150:../libraries/Switch/twi.c ****   for(i = 0; i < length; ++i){
+ 204               	.LM20:
+ 205 0068 D901      		movw r26,r18
+ 206 006a 00C0      		rjmp .L8
+ 207               	.L9:
+ 151:../libraries/Switch/twi.c ****     data[i] = twi_masterBuffer[i];
+ 209               	.LM21:
+ 210 006c 8D91      		ld r24,X+
+ 211 006e 8193      		st Z+,r24
+ 212               	.L8:
+ 150:../libraries/Switch/twi.c ****   for(i = 0; i < length; ++i){
+ 214               	.LM22:
+ 215 0070 8A2F      		mov r24,r26
+ 216 0072 821B      		sub r24,r18
+ 217 0074 8417      		cp r24,r20
+ 218 0076 00F0      		brlo .L9
+ 219 0078 00C0      		rjmp .L4
+ 220               	.L10:
+ 114:../libraries/Switch/twi.c ****     return 0;
+ 222               	.LM23:
+ 223 007a 40E0      		ldi r20,0
+ 224               	.L4:
+ 152:../libraries/Switch/twi.c ****   }
+ 153:../libraries/Switch/twi.c **** 	
+ 154:../libraries/Switch/twi.c ****   return length;
+ 155:../libraries/Switch/twi.c **** }
+ 226               	.LM24:
+ 227 007c 842F      		mov r24,r20
+ 228 007e 0895      		ret
+ 230               	.Lscope3:
+ 232               		.stabd	78,0,0
+ 237               	.global	twi_writeTo
+ 239               	twi_writeTo:
+ 240               		.stabd	46,0,0
+ 156:../libraries/Switch/twi.c **** 
+ 157:../libraries/Switch/twi.c **** /* 
+ 158:../libraries/Switch/twi.c ****  * Function twi_writeTo
+ 159:../libraries/Switch/twi.c ****  * Desc     attempts to become twi bus master and write a
+ 160:../libraries/Switch/twi.c ****  *          series of bytes to a device on the bus
+ 161:../libraries/Switch/twi.c ****  * Input    address: 7bit i2c device address
+ 162:../libraries/Switch/twi.c ****  *          data: pointer to byte array
+ 163:../libraries/Switch/twi.c ****  *          length: number of bytes in array
+ 164:../libraries/Switch/twi.c ****  *          wait: boolean indicating to wait for write or not
+ 165:../libraries/Switch/twi.c ****  * Output   0 .. success
+ 166:../libraries/Switch/twi.c ****  *          1 .. length to long for buffer
+ 167:../libraries/Switch/twi.c ****  *          2 .. address send, NACK received
+ 168:../libraries/Switch/twi.c ****  *          3 .. data send, NACK received
+ 169:../libraries/Switch/twi.c ****  *          4 .. other twi error (lost bus arbitration, bus error, ..)
+ 170:../libraries/Switch/twi.c ****  */
+ 171:../libraries/Switch/twi.c **** uint8_t twi_writeTo(uint8_t address, uint8_t* data, uint8_t length, uint8_t wait)
+ 172:../libraries/Switch/twi.c **** {
+ 242               	.LM25:
+ 243               	.LFBB4:
+ 244               	/* prologue: function */
+ 245               	/* frame size = 0 */
+ 246               	/* stack size = 0 */
+ 247               	.L__stack_usage = 0
+ 173:../libraries/Switch/twi.c ****   uint8_t i;
+ 174:../libraries/Switch/twi.c **** 
+ 175:../libraries/Switch/twi.c ****   // ensure data will fit into buffer
+ 176:../libraries/Switch/twi.c ****   if(TWI_BUFFER_LENGTH < length){
+ 249               	.LM26:
+ 250 0080 4132      		cpi r20,lo8(33)
+ 251 0082 00F4      		brsh .L24
+ 252               	.L33:
+ 177:../libraries/Switch/twi.c ****     return 1;
+ 178:../libraries/Switch/twi.c ****   }
+ 179:../libraries/Switch/twi.c **** 
+ 180:../libraries/Switch/twi.c ****   // wait until twi is ready, become master transmitter
+ 181:../libraries/Switch/twi.c ****   while(TWI_READY != twi_state){
+ 254               	.LM27:
+ 255 0084 9091 0000 		lds r25,twi_state
+ 256 0088 9111      		cpse r25,__zero_reg__
+ 257 008a 00C0      		rjmp .L33
+ 182:../libraries/Switch/twi.c ****     continue;
+ 183:../libraries/Switch/twi.c ****   }
+ 184:../libraries/Switch/twi.c ****   twi_state = TWI_MTX;
+ 259               	.LM28:
+ 260 008c 92E0      		ldi r25,lo8(2)
+ 261 008e 9093 0000 		sts twi_state,r25
+ 185:../libraries/Switch/twi.c ****   // reset error state (0xFF.. no error occured)
+ 186:../libraries/Switch/twi.c ****   twi_error = 0xFF;
+ 263               	.LM29:
+ 264 0092 9FEF      		ldi r25,lo8(-1)
+ 265 0094 9093 0000 		sts twi_error,r25
+ 187:../libraries/Switch/twi.c **** 
+ 188:../libraries/Switch/twi.c ****   // initialize buffer iteration vars
+ 189:../libraries/Switch/twi.c ****   twi_masterBufferIndex = 0;
+ 267               	.LM30:
+ 268 0098 1092 0000 		sts twi_masterBufferIndex,__zero_reg__
+ 190:../libraries/Switch/twi.c ****   twi_masterBufferLength = length;
+ 270               	.LM31:
+ 271 009c 4093 0000 		sts twi_masterBufferLength,r20
+ 272 00a0 FB01      		movw r30,r22
+ 273 00a2 60E0      		ldi r22,lo8(twi_masterBuffer)
+ 274 00a4 70E0      		ldi r23,hi8(twi_masterBuffer)
+ 191:../libraries/Switch/twi.c ****   
+ 192:../libraries/Switch/twi.c ****   // copy data to twi buffer
+ 193:../libraries/Switch/twi.c ****   for(i = 0; i < length; ++i){
+ 276               	.LM32:
+ 277 00a6 DB01      		movw r26,r22
+ 278 00a8 00C0      		rjmp .L20
+ 279               	.L21:
+ 194:../libraries/Switch/twi.c ****     twi_masterBuffer[i] = data[i];
+ 281               	.LM33:
+ 282 00aa 9191      		ld r25,Z+
+ 283 00ac 9D93      		st X+,r25
+ 284               	.L20:
+ 193:../libraries/Switch/twi.c ****   for(i = 0; i < length; ++i){
+ 286               	.LM34:
+ 287 00ae 9A2F      		mov r25,r26
+ 288 00b0 961B      		sub r25,r22
+ 289 00b2 9417      		cp r25,r20
+ 290 00b4 00F0      		brlo .L21
+ 195:../libraries/Switch/twi.c ****   }
+ 196:../libraries/Switch/twi.c ****   
+ 197:../libraries/Switch/twi.c ****   // build sla+w, slave device address + w bit
+ 198:../libraries/Switch/twi.c ****   twi_slarw = TW_WRITE;
+ 199:../libraries/Switch/twi.c ****   twi_slarw |= address << 1;
+ 292               	.LM35:
+ 293 00b6 90E0      		ldi r25,0
+ 294 00b8 880F      		lsl r24
+ 295 00ba 991F      		rol r25
+ 296 00bc 8093 0000 		sts twi_slarw,r24
+ 200:../libraries/Switch/twi.c ****   
+ 201:../libraries/Switch/twi.c ****   // send start condition
+ 202:../libraries/Switch/twi.c ****   TWCR = _BV(TWEN) | _BV(TWIE) | _BV(TWEA) | _BV(TWINT) | _BV(TWSTA);
+ 298               	.LM36:
+ 299 00c0 85EE      		ldi r24,lo8(-27)
+ 300 00c2 86BF      		out 0x36,r24
+ 203:../libraries/Switch/twi.c **** 
+ 204:../libraries/Switch/twi.c ****   // wait for write operation to complete
+ 205:../libraries/Switch/twi.c ****   while(wait && (TWI_MTX == twi_state)){
+ 302               	.LM37:
+ 303 00c4 2223      		tst r18
+ 304 00c6 01F0      		breq .L22
+ 305               	.L32:
+ 306 00c8 8091 0000 		lds r24,twi_state
+ 307 00cc 8230      		cpi r24,lo8(2)
+ 308 00ce 01F0      		breq .L32
+ 309               	.L22:
+ 206:../libraries/Switch/twi.c ****     continue;
+ 207:../libraries/Switch/twi.c ****   }
+ 208:../libraries/Switch/twi.c ****   
+ 209:../libraries/Switch/twi.c ****   if (twi_error == 0xFF)
+ 311               	.LM38:
+ 312 00d0 8091 0000 		lds r24,twi_error
+ 313 00d4 8F3F      		cpi r24,lo8(-1)
+ 314 00d6 01F0      		breq .L25
+ 210:../libraries/Switch/twi.c ****     return 0;	// success
+ 211:../libraries/Switch/twi.c ****   else if (twi_error == TW_MT_SLA_NACK)
+ 316               	.LM39:
+ 317 00d8 8091 0000 		lds r24,twi_error
+ 318 00dc 8032      		cpi r24,lo8(32)
+ 319 00de 01F0      		breq .L26
+ 212:../libraries/Switch/twi.c ****     return 2;	// error: address send, nack received
+ 213:../libraries/Switch/twi.c ****   else if (twi_error == TW_MT_DATA_NACK)
+ 321               	.LM40:
+ 322 00e0 8091 0000 		lds r24,twi_error
+ 323 00e4 8033      		cpi r24,lo8(48)
+ 324 00e6 01F4      		brne .L27
+ 214:../libraries/Switch/twi.c ****     return 3;	// error: data send, nack received
+ 326               	.LM41:
+ 327 00e8 83E0      		ldi r24,lo8(3)
+ 328 00ea 0895      		ret
+ 329               	.L24:
+ 177:../libraries/Switch/twi.c ****     return 1;
+ 331               	.LM42:
+ 332 00ec 81E0      		ldi r24,lo8(1)
+ 333 00ee 0895      		ret
+ 334               	.L25:
+ 210:../libraries/Switch/twi.c ****     return 0;	// success
+ 336               	.LM43:
+ 337 00f0 80E0      		ldi r24,0
+ 338 00f2 0895      		ret
+ 339               	.L26:
+ 212:../libraries/Switch/twi.c ****     return 2;	// error: address send, nack received
+ 341               	.LM44:
+ 342 00f4 82E0      		ldi r24,lo8(2)
+ 343 00f6 0895      		ret
+ 344               	.L27:
+ 215:../libraries/Switch/twi.c ****   else
+ 216:../libraries/Switch/twi.c ****     return 4;	// other twi error
+ 346               	.LM45:
+ 347 00f8 84E0      		ldi r24,lo8(4)
+ 217:../libraries/Switch/twi.c **** }
+ 349               	.LM46:
+ 350 00fa 0895      		ret
+ 352               	.Lscope4:
+ 354               		.stabd	78,0,0
+ 357               	.global	twi_transmit
+ 359               	twi_transmit:
+ 360               		.stabd	46,0,0
+ 218:../libraries/Switch/twi.c **** 
+ 219:../libraries/Switch/twi.c **** /* 
+ 220:../libraries/Switch/twi.c ****  * Function twi_transmit
+ 221:../libraries/Switch/twi.c ****  * Desc     fills slave tx buffer with data
+ 222:../libraries/Switch/twi.c ****  *          must be called in slave tx event callback
+ 223:../libraries/Switch/twi.c ****  * Input    data: pointer to byte array
+ 224:../libraries/Switch/twi.c ****  *          length: number of bytes in array
+ 225:../libraries/Switch/twi.c ****  * Output   1 length too long for buffer
+ 226:../libraries/Switch/twi.c ****  *          2 not slave transmitter
+ 227:../libraries/Switch/twi.c ****  *          0 ok
+ 228:../libraries/Switch/twi.c ****  */
+ 229:../libraries/Switch/twi.c **** uint8_t twi_transmit(const uint8_t* data, uint8_t length)
+ 230:../libraries/Switch/twi.c **** {
+ 362               	.LM47:
+ 363               	.LFBB5:
+ 364               	/* prologue: function */
+ 365               	/* frame size = 0 */
+ 366               	/* stack size = 0 */
+ 367               	.L__stack_usage = 0
+ 231:../libraries/Switch/twi.c ****   uint8_t i;
+ 232:../libraries/Switch/twi.c **** 
+ 233:../libraries/Switch/twi.c ****   // ensure data will fit into buffer
+ 234:../libraries/Switch/twi.c ****   if(TWI_BUFFER_LENGTH < length){
+ 369               	.LM48:
+ 370 00fc 6132      		cpi r22,lo8(33)
+ 371 00fe 00F4      		brsh .L42
+ 235:../libraries/Switch/twi.c ****     return 1;
+ 236:../libraries/Switch/twi.c ****   }
+ 237:../libraries/Switch/twi.c ****   
+ 238:../libraries/Switch/twi.c ****   // ensure we are currently a slave transmitter
+ 239:../libraries/Switch/twi.c ****   if(TWI_STX != twi_state){
+ 373               	.LM49:
+ 374 0100 2091 0000 		lds r18,twi_state
+ 375 0104 2430      		cpi r18,lo8(4)
+ 376 0106 01F4      		brne .L43
+ 240:../libraries/Switch/twi.c ****     return 2;
+ 241:../libraries/Switch/twi.c ****   }
+ 242:../libraries/Switch/twi.c ****   
+ 243:../libraries/Switch/twi.c ****   // set length and copy data into tx buffer
+ 244:../libraries/Switch/twi.c ****   twi_txBufferLength = length;
+ 378               	.LM50:
+ 379 0108 6093 0000 		sts twi_txBufferLength,r22
+ 380 010c FC01      		movw r30,r24
+ 381 010e 80E0      		ldi r24,lo8(twi_txBuffer)
+ 382 0110 90E0      		ldi r25,hi8(twi_txBuffer)
+ 245:../libraries/Switch/twi.c ****   for(i = 0; i < length; ++i){
+ 384               	.LM51:
+ 385 0112 DC01      		movw r26,r24
+ 386 0114 00C0      		rjmp .L40
+ 387               	.L41:
+ 246:../libraries/Switch/twi.c ****     twi_txBuffer[i] = data[i];
+ 389               	.LM52:
+ 390 0116 2191      		ld r18,Z+
+ 391 0118 2D93      		st X+,r18
+ 392               	.L40:
+ 245:../libraries/Switch/twi.c ****   for(i = 0; i < length; ++i){
+ 394               	.LM53:
+ 395 011a 2A2F      		mov r18,r26
+ 396 011c 281B      		sub r18,r24
+ 397 011e 2617      		cp r18,r22
+ 398 0120 00F0      		brlo .L41
+ 247:../libraries/Switch/twi.c ****   }
+ 248:../libraries/Switch/twi.c ****   
+ 249:../libraries/Switch/twi.c ****   return 0;
+ 400               	.LM54:
+ 401 0122 80E0      		ldi r24,0
+ 402 0124 0895      		ret
+ 403               	.L42:
+ 235:../libraries/Switch/twi.c ****     return 1;
+ 405               	.LM55:
+ 406 0126 81E0      		ldi r24,lo8(1)
+ 407 0128 0895      		ret
+ 408               	.L43:
+ 240:../libraries/Switch/twi.c ****     return 2;
+ 410               	.LM56:
+ 411 012a 82E0      		ldi r24,lo8(2)
+ 250:../libraries/Switch/twi.c **** }
+ 413               	.LM57:
+ 414 012c 0895      		ret
+ 416               	.Lscope5:
+ 418               		.stabd	78,0,0
+ 421               	.global	twi_attachSlaveRxEvent
+ 423               	twi_attachSlaveRxEvent:
+ 424               		.stabd	46,0,0
+ 251:../libraries/Switch/twi.c **** 
+ 252:../libraries/Switch/twi.c **** /* 
+ 253:../libraries/Switch/twi.c ****  * Function twi_attachSlaveRxEvent
+ 254:../libraries/Switch/twi.c ****  * Desc     sets function called before a slave read operation
+ 255:../libraries/Switch/twi.c ****  * Input    function: callback function to use
+ 256:../libraries/Switch/twi.c ****  * Output   none
+ 257:../libraries/Switch/twi.c ****  */
+ 258:../libraries/Switch/twi.c **** void twi_attachSlaveRxEvent( void (*function)(uint8_t*, int) )
+ 259:../libraries/Switch/twi.c **** {
+ 426               	.LM58:
+ 427               	.LFBB6:
+ 428               	/* prologue: function */
+ 429               	/* frame size = 0 */
+ 430               	/* stack size = 0 */
+ 431               	.L__stack_usage = 0
+ 260:../libraries/Switch/twi.c ****   twi_onSlaveReceive = function;
+ 433               	.LM59:
+ 434 012e 9093 0000 		sts twi_onSlaveReceive+1,r25
+ 435 0132 8093 0000 		sts twi_onSlaveReceive,r24
+ 436 0136 0895      		ret
+ 438               	.Lscope6:
+ 440               		.stabd	78,0,0
+ 443               	.global	twi_attachSlaveTxEvent
+ 445               	twi_attachSlaveTxEvent:
+ 446               		.stabd	46,0,0
+ 261:../libraries/Switch/twi.c **** }
+ 262:../libraries/Switch/twi.c **** 
+ 263:../libraries/Switch/twi.c **** /* 
+ 264:../libraries/Switch/twi.c ****  * Function twi_attachSlaveTxEvent
+ 265:../libraries/Switch/twi.c ****  * Desc     sets function called before a slave write operation
+ 266:../libraries/Switch/twi.c ****  * Input    function: callback function to use
+ 267:../libraries/Switch/twi.c ****  * Output   none
+ 268:../libraries/Switch/twi.c ****  */
+ 269:../libraries/Switch/twi.c **** void twi_attachSlaveTxEvent( void (*function)(void) )
+ 270:../libraries/Switch/twi.c **** {
+ 448               	.LM60:
+ 449               	.LFBB7:
+ 450               	/* prologue: function */
+ 451               	/* frame size = 0 */
+ 452               	/* stack size = 0 */
+ 453               	.L__stack_usage = 0
+ 271:../libraries/Switch/twi.c ****   twi_onSlaveTransmit = function;
+ 455               	.LM61:
+ 456 0138 9093 0000 		sts twi_onSlaveTransmit+1,r25
+ 457 013c 8093 0000 		sts twi_onSlaveTransmit,r24
+ 458 0140 0895      		ret
+ 460               	.Lscope7:
+ 462               		.stabd	78,0,0
+ 465               	.global	twi_reply
+ 467               	twi_reply:
+ 468               		.stabd	46,0,0
+ 272:../libraries/Switch/twi.c **** }
+ 273:../libraries/Switch/twi.c **** 
+ 274:../libraries/Switch/twi.c **** /* 
+ 275:../libraries/Switch/twi.c ****  * Function twi_reply
+ 276:../libraries/Switch/twi.c ****  * Desc     sends byte or readys receive line
+ 277:../libraries/Switch/twi.c ****  * Input    ack: byte indicating to ack or to nack
+ 278:../libraries/Switch/twi.c ****  * Output   none
+ 279:../libraries/Switch/twi.c ****  */
+ 280:../libraries/Switch/twi.c **** void twi_reply(uint8_t ack)
+ 281:../libraries/Switch/twi.c **** {
+ 470               	.LM62:
+ 471               	.LFBB8:
+ 472               	/* prologue: function */
+ 473               	/* frame size = 0 */
+ 474               	/* stack size = 0 */
+ 475               	.L__stack_usage = 0
+ 282:../libraries/Switch/twi.c ****   // transmit master read ready signal, with or without ack
+ 283:../libraries/Switch/twi.c ****   if(ack){
+ 477               	.LM63:
+ 478 0142 8823      		tst r24
+ 479 0144 01F0      		breq .L47
+ 284:../libraries/Switch/twi.c ****     TWCR = _BV(TWEN) | _BV(TWIE) | _BV(TWINT) | _BV(TWEA);
+ 481               	.LM64:
+ 482 0146 85EC      		ldi r24,lo8(-59)
+ 483 0148 00C0      		rjmp .L49
+ 484               	.L47:
+ 285:../libraries/Switch/twi.c ****   }else{
+ 286:../libraries/Switch/twi.c **** 	  TWCR = _BV(TWEN) | _BV(TWIE) | _BV(TWINT);
+ 486               	.LM65:
+ 487 014a 85E8      		ldi r24,lo8(-123)
+ 488               	.L49:
+ 489 014c 86BF      		out 0x36,r24
+ 490 014e 0895      		ret
+ 492               	.Lscope8:
+ 494               		.stabd	78,0,0
+ 496               	.global	twi_stop
+ 498               	twi_stop:
+ 499               		.stabd	46,0,0
+ 287:../libraries/Switch/twi.c ****   }
+ 288:../libraries/Switch/twi.c **** }
+ 289:../libraries/Switch/twi.c **** 
+ 290:../libraries/Switch/twi.c **** /* 
+ 291:../libraries/Switch/twi.c ****  * Function twi_stop
+ 292:../libraries/Switch/twi.c ****  * Desc     relinquishes bus master status
+ 293:../libraries/Switch/twi.c ****  * Input    none
+ 294:../libraries/Switch/twi.c ****  * Output   none
+ 295:../libraries/Switch/twi.c ****  */
+ 296:../libraries/Switch/twi.c **** void twi_stop(void)
+ 297:../libraries/Switch/twi.c **** {
+ 501               	.LM66:
+ 502               	.LFBB9:
+ 503               	/* prologue: function */
+ 504               	/* frame size = 0 */
+ 505               	/* stack size = 0 */
+ 506               	.L__stack_usage = 0
+ 298:../libraries/Switch/twi.c ****   // send stop condition
+ 299:../libraries/Switch/twi.c ****   TWCR = _BV(TWEN) | _BV(TWIE) | _BV(TWEA) | _BV(TWINT) | _BV(TWSTO);
+ 508               	.LM67:
+ 509 0150 85ED      		ldi r24,lo8(-43)
+ 510 0152 86BF      		out 0x36,r24
+ 511               	.L51:
+ 300:../libraries/Switch/twi.c **** 
+ 301:../libraries/Switch/twi.c ****   // wait for stop condition to be exectued on bus
+ 302:../libraries/Switch/twi.c ****   // TWINT is not set after a stop condition!
+ 303:../libraries/Switch/twi.c ****   while(TWCR & _BV(TWSTO)){
+ 513               	.LM68:
+ 514 0154 06B6      		in __tmp_reg__,0x36
+ 515 0156 04FC      		sbrc __tmp_reg__,4
+ 516 0158 00C0      		rjmp .L51
+ 304:../libraries/Switch/twi.c ****     continue;
+ 305:../libraries/Switch/twi.c ****   }
+ 306:../libraries/Switch/twi.c **** 
+ 307:../libraries/Switch/twi.c ****   // update twi state
+ 308:../libraries/Switch/twi.c ****   twi_state = TWI_READY;
+ 518               	.LM69:
+ 519 015a 1092 0000 		sts twi_state,__zero_reg__
+ 520 015e 0895      		ret
+ 522               	.Lscope9:
+ 524               		.stabd	78,0,0
+ 526               	.global	twi_releaseBus
+ 528               	twi_releaseBus:
+ 529               		.stabd	46,0,0
+ 309:../libraries/Switch/twi.c **** }
+ 310:../libraries/Switch/twi.c **** 
+ 311:../libraries/Switch/twi.c **** /* 
+ 312:../libraries/Switch/twi.c ****  * Function twi_releaseBus
+ 313:../libraries/Switch/twi.c ****  * Desc     releases bus control
+ 314:../libraries/Switch/twi.c ****  * Input    none
+ 315:../libraries/Switch/twi.c ****  * Output   none
+ 316:../libraries/Switch/twi.c ****  */
+ 317:../libraries/Switch/twi.c **** void twi_releaseBus(void)
+ 318:../libraries/Switch/twi.c **** {
+ 531               	.LM70:
+ 532               	.LFBB10:
+ 533               	/* prologue: function */
+ 534               	/* frame size = 0 */
+ 535               	/* stack size = 0 */
+ 536               	.L__stack_usage = 0
+ 319:../libraries/Switch/twi.c ****   // release bus
+ 320:../libraries/Switch/twi.c ****   TWCR = _BV(TWEN) | _BV(TWIE) | _BV(TWEA) | _BV(TWINT);
+ 538               	.LM71:
+ 539 0160 85EC      		ldi r24,lo8(-59)
+ 540 0162 86BF      		out 0x36,r24
+ 321:../libraries/Switch/twi.c **** 
+ 322:../libraries/Switch/twi.c ****   // update twi state
+ 323:../libraries/Switch/twi.c ****   twi_state = TWI_READY;
+ 542               	.LM72:
+ 543 0164 1092 0000 		sts twi_state,__zero_reg__
+ 544 0168 0895      		ret
+ 546               	.Lscope10:
+ 548               		.stabd	78,0,0
+ 550               	.global	__vector_17
+ 552               	__vector_17:
+ 553               		.stabd	46,0,0
+ 324:../libraries/Switch/twi.c **** }
+ 325:../libraries/Switch/twi.c **** 
+ 326:../libraries/Switch/twi.c **** SIGNAL(TWI_vect)
+ 327:../libraries/Switch/twi.c **** {
+ 555               	.LM73:
+ 556               	.LFBB11:
+ 557 016a 1F92      		push r1
+ 558 016c 0F92      		push r0
+ 559 016e 0FB6      		in r0,__SREG__
+ 560 0170 0F92      		push r0
+ 561 0172 1124      		clr __zero_reg__
+ 562 0174 2F93      		push r18
+ 563 0176 3F93      		push r19
+ 564 0178 4F93      		push r20
+ 565 017a 5F93      		push r21
+ 566 017c 6F93      		push r22
+ 567 017e 7F93      		push r23
+ 568 0180 8F93      		push r24
+ 569 0182 9F93      		push r25
+ 570 0184 AF93      		push r26
+ 571 0186 BF93      		push r27
+ 572 0188 EF93      		push r30
+ 573 018a FF93      		push r31
+ 574               	/* prologue: Signal */
+ 575               	/* frame size = 0 */
+ 576               	/* stack size = 15 */
+ 577               	.L__stack_usage = 15
+ 328:../libraries/Switch/twi.c ****   switch(TW_STATUS){
+ 579               	.LM74:
+ 580 018c 81B1      		in r24,0x1
+ 581 018e 887F      		andi r24,lo8(-8)
+ 582 0190 8036      		cpi r24,lo8(96)
+ 583 0192 01F4      		brne .+2
+ 584 0194 00C0      		rjmp .L66
+ 585 0196 00F4      		brsh .L73
+ 586 0198 8832      		cpi r24,lo8(40)
+ 587 019a 01F4      		brne .+2
+ 588 019c 00C0      		rjmp .L58
+ 589 019e 00F4      		brsh .L74
+ 590 01a0 8031      		cpi r24,lo8(16)
+ 591 01a2 01F4      		brne .+2
+ 592 01a4 00C0      		rjmp .L57
+ 593 01a6 00F4      		brsh .L75
+ 594 01a8 8823      		tst r24
+ 595 01aa 01F4      		brne .+2
+ 596 01ac 00C0      		rjmp .L56
+ 597 01ae 8830      		cpi r24,lo8(8)
+ 598 01b0 01F0      		breq .+2
+ 599 01b2 00C0      		rjmp .L54
+ 600 01b4 00C0      		rjmp .L57
+ 601               	.L75:
+ 602 01b6 8831      		cpi r24,lo8(24)
+ 603 01b8 01F4      		brne .+2
+ 604 01ba 00C0      		rjmp .L58
+ 605 01bc 8032      		cpi r24,lo8(32)
+ 606 01be 01F0      		breq .+2
+ 607 01c0 00C0      		rjmp .L54
+ 608 01c2 00C0      		rjmp .L60
+ 609               	.L74:
+ 610 01c4 8034      		cpi r24,lo8(64)
+ 611 01c6 01F4      		brne .+2
+ 612 01c8 00C0      		rjmp .L62
+ 613 01ca 00F4      		brsh .L76
+ 614 01cc 8033      		cpi r24,lo8(48)
+ 615 01ce 01F4      		brne .+2
+ 616 01d0 00C0      		rjmp .L60
+ 617 01d2 8833      		cpi r24,lo8(56)
+ 618 01d4 01F0      		breq .+2
+ 619 01d6 00C0      		rjmp .L54
+ 620 01d8 00C0      		rjmp .L61
+ 621               	.L76:
+ 622 01da 8035      		cpi r24,lo8(80)
+ 623 01dc 01F4      		brne .+2
+ 624 01de 00C0      		rjmp .L64
+ 625 01e0 8835      		cpi r24,lo8(88)
+ 626 01e2 01F4      		brne .+2
+ 627 01e4 00C0      		rjmp .L65
+ 628 01e6 8834      		cpi r24,lo8(72)
+ 629 01e8 01F0      		breq .+2
+ 630 01ea 00C0      		rjmp .L54
+ 631 01ec 00C0      		rjmp .L143
+ 632               	.L73:
+ 633 01ee 8839      		cpi r24,lo8(-104)
+ 634 01f0 01F4      		brne .+2
+ 635 01f2 00C0      		rjmp .L84
+ 636 01f4 00F4      		brsh .L77
+ 637 01f6 8837      		cpi r24,lo8(120)
+ 638 01f8 01F4      		brne .+2
+ 639 01fa 00C0      		rjmp .L66
+ 640 01fc 00F4      		brsh .L78
+ 641 01fe 8836      		cpi r24,lo8(104)
+ 642 0200 01F4      		brne .+2
+ 643 0202 00C0      		rjmp .L66
+ 644 0204 8037      		cpi r24,lo8(112)
+ 645 0206 01F0      		breq .+2
+ 646 0208 00C0      		rjmp .L54
+ 647 020a 00C0      		rjmp .L66
+ 648               	.L78:
+ 649 020c 8838      		cpi r24,lo8(-120)
+ 650 020e 01F4      		brne .+2
+ 651 0210 00C0      		rjmp .L84
+ 652 0212 8039      		cpi r24,lo8(-112)
+ 653 0214 01F4      		brne .+2
+ 654 0216 00C0      		rjmp .L67
+ 655 0218 8038      		cpi r24,lo8(-128)
+ 656 021a 01F0      		breq .+2
+ 657 021c 00C0      		rjmp .L54
+ 658 021e 00C0      		rjmp .L67
+ 659               	.L77:
+ 660 0220 803B      		cpi r24,lo8(-80)
+ 661 0222 01F4      		brne .+2
+ 662 0224 00C0      		rjmp .L70
+ 663 0226 00F4      		brsh .L79
+ 664 0228 803A      		cpi r24,lo8(-96)
+ 665 022a 01F4      		brne .+2
+ 666 022c 00C0      		rjmp .L69
+ 667 022e 883A      		cpi r24,lo8(-88)
+ 668 0230 01F0      		breq .+2
+ 669 0232 00C0      		rjmp .L54
+ 670 0234 00C0      		rjmp .L70
+ 671               	.L79:
+ 672 0236 803C      		cpi r24,lo8(-64)
+ 673 0238 01F4      		brne .+2
+ 674 023a 00C0      		rjmp .L72
+ 675 023c 883C      		cpi r24,lo8(-56)
+ 676 023e 01F4      		brne .+2
+ 677 0240 00C0      		rjmp .L72
+ 678 0242 883B      		cpi r24,lo8(-72)
+ 679 0244 01F0      		breq .+2
+ 680 0246 00C0      		rjmp .L54
+ 681 0248 00C0      		rjmp .L71
+ 682               	.L57:
+ 329:../libraries/Switch/twi.c ****     // All Master
+ 330:../libraries/Switch/twi.c ****     case TW_START:     // sent start condition
+ 331:../libraries/Switch/twi.c ****     case TW_REP_START: // sent repeated start condition
+ 332:../libraries/Switch/twi.c ****       // copy device address and r/w bit to output register and ack
+ 333:../libraries/Switch/twi.c ****       TWDR = twi_slarw;
+ 684               	.LM75:
+ 685 024a 8091 0000 		lds r24,twi_slarw
+ 686 024e 83B9      		out 0x3,r24
+ 687 0250 00C0      		rjmp .L145
+ 688               	.L58:
+ 334:../libraries/Switch/twi.c ****       twi_reply(1);
+ 335:../libraries/Switch/twi.c ****       break;
+ 336:../libraries/Switch/twi.c **** 
+ 337:../libraries/Switch/twi.c ****     // Master Transmitter
+ 338:../libraries/Switch/twi.c ****     case TW_MT_SLA_ACK:  // slave receiver acked address
+ 339:../libraries/Switch/twi.c ****     case TW_MT_DATA_ACK: // slave receiver acked data
+ 340:../libraries/Switch/twi.c ****       // if there is data to send, send it, otherwise stop 
+ 341:../libraries/Switch/twi.c ****       if(twi_masterBufferIndex < twi_masterBufferLength){
+ 690               	.LM76:
+ 691 0252 9091 0000 		lds r25,twi_masterBufferIndex
+ 692 0256 8091 0000 		lds r24,twi_masterBufferLength
+ 693 025a 9817      		cp r25,r24
+ 694 025c 00F0      		brlo .+2
+ 695 025e 00C0      		rjmp .L143
+ 342:../libraries/Switch/twi.c ****         // copy data to output register and ack
+ 343:../libraries/Switch/twi.c ****         TWDR = twi_masterBuffer[twi_masterBufferIndex++];
+ 697               	.LM77:
+ 698 0260 8091 0000 		lds r24,twi_masterBufferIndex
+ 699 0264 E82F      		mov r30,r24
+ 700 0266 F0E0      		ldi r31,0
+ 701 0268 E050      		subi r30,lo8(-(twi_masterBuffer))
+ 702 026a F040      		sbci r31,hi8(-(twi_masterBuffer))
+ 703 026c 9081      		ld r25,Z
+ 704 026e 93B9      		out 0x3,r25
+ 705 0270 8F5F      		subi r24,lo8(-(1))
+ 706 0272 8093 0000 		sts twi_masterBufferIndex,r24
+ 707               	.L145:
+ 708               	.LBB24:
+ 709               	.LBB25:
+ 284:../libraries/Switch/twi.c ****     TWCR = _BV(TWEN) | _BV(TWIE) | _BV(TWINT) | _BV(TWEA);
+ 711               	.LM78:
+ 712 0276 85EC      		ldi r24,lo8(-59)
+ 713 0278 00C0      		rjmp .L142
+ 714               	.L60:
+ 715               	.LBE25:
+ 716               	.LBE24:
+ 344:../libraries/Switch/twi.c ****         twi_reply(1);
+ 345:../libraries/Switch/twi.c ****       }else{
+ 346:../libraries/Switch/twi.c ****         twi_stop();
+ 347:../libraries/Switch/twi.c ****       }
+ 348:../libraries/Switch/twi.c ****       break;
+ 349:../libraries/Switch/twi.c ****     case TW_MT_SLA_NACK:  // address sent, nack received
+ 350:../libraries/Switch/twi.c ****       twi_error = TW_MT_SLA_NACK;
+ 351:../libraries/Switch/twi.c ****       twi_stop();
+ 352:../libraries/Switch/twi.c ****       break;
+ 353:../libraries/Switch/twi.c ****     case TW_MT_DATA_NACK: // data sent, nack received
+ 354:../libraries/Switch/twi.c ****       twi_error = TW_MT_DATA_NACK;
+ 718               	.LM79:
+ 719 027a 8093 0000 		sts twi_error,r24
+ 720 027e 00C0      		rjmp .L143
+ 721               	.L61:
+ 355:../libraries/Switch/twi.c ****       twi_stop();
+ 356:../libraries/Switch/twi.c ****       break;
+ 357:../libraries/Switch/twi.c ****     case TW_MT_ARB_LOST: // lost bus arbitration
+ 358:../libraries/Switch/twi.c ****       twi_error = TW_MT_ARB_LOST;
+ 723               	.LM80:
+ 724 0280 8093 0000 		sts twi_error,r24
+ 725 0284 00C0      		rjmp .L144
+ 726               	.L64:
+ 359:../libraries/Switch/twi.c ****       twi_releaseBus();
+ 360:../libraries/Switch/twi.c ****       break;
+ 361:../libraries/Switch/twi.c **** 
+ 362:../libraries/Switch/twi.c ****     // Master Receiver
+ 363:../libraries/Switch/twi.c ****     case TW_MR_DATA_ACK: // data received, ack sent
+ 364:../libraries/Switch/twi.c ****       // put byte into buffer
+ 365:../libraries/Switch/twi.c ****       twi_masterBuffer[twi_masterBufferIndex++] = TWDR;
+ 728               	.LM81:
+ 729 0286 8091 0000 		lds r24,twi_masterBufferIndex
+ 730 028a 93B1      		in r25,0x3
+ 731 028c E82F      		mov r30,r24
+ 732 028e F0E0      		ldi r31,0
+ 733 0290 E050      		subi r30,lo8(-(twi_masterBuffer))
+ 734 0292 F040      		sbci r31,hi8(-(twi_masterBuffer))
+ 735 0294 9083      		st Z,r25
+ 736 0296 8F5F      		subi r24,lo8(-(1))
+ 737 0298 8093 0000 		sts twi_masterBufferIndex,r24
+ 738               	.L62:
+ 366:../libraries/Switch/twi.c ****     case TW_MR_SLA_ACK:  // address sent, ack received
+ 367:../libraries/Switch/twi.c ****       // ack if more bytes are expected, otherwise nack
+ 368:../libraries/Switch/twi.c ****       if(twi_masterBufferIndex < twi_masterBufferLength){
+ 740               	.LM82:
+ 741 029c 9091 0000 		lds r25,twi_masterBufferIndex
+ 742 02a0 8091 0000 		lds r24,twi_masterBufferLength
+ 743 02a4 00C0      		rjmp .L147
+ 744               	.L65:
+ 369:../libraries/Switch/twi.c ****         twi_reply(1);
+ 370:../libraries/Switch/twi.c ****       }else{
+ 371:../libraries/Switch/twi.c ****         twi_reply(0);
+ 372:../libraries/Switch/twi.c ****       }
+ 373:../libraries/Switch/twi.c ****       break;
+ 374:../libraries/Switch/twi.c ****     case TW_MR_DATA_NACK: // data received, nack sent
+ 375:../libraries/Switch/twi.c ****       // put final byte into buffer
+ 376:../libraries/Switch/twi.c ****       twi_masterBuffer[twi_masterBufferIndex++] = TWDR;
+ 746               	.LM83:
+ 747 02a6 8091 0000 		lds r24,twi_masterBufferIndex
+ 748 02aa 93B1      		in r25,0x3
+ 749 02ac E82F      		mov r30,r24
+ 750 02ae F0E0      		ldi r31,0
+ 751 02b0 E050      		subi r30,lo8(-(twi_masterBuffer))
+ 752 02b2 F040      		sbci r31,hi8(-(twi_masterBuffer))
+ 753 02b4 9083      		st Z,r25
+ 754 02b6 8F5F      		subi r24,lo8(-(1))
+ 755 02b8 8093 0000 		sts twi_masterBufferIndex,r24
+ 756 02bc 00C0      		rjmp .L143
+ 757               	.L66:
+ 377:../libraries/Switch/twi.c ****     case TW_MR_SLA_NACK: // address sent, nack received
+ 378:../libraries/Switch/twi.c ****       twi_stop();
+ 379:../libraries/Switch/twi.c ****       break;
+ 380:../libraries/Switch/twi.c ****     // TW_MR_ARB_LOST handled by TW_MT_ARB_LOST case
+ 381:../libraries/Switch/twi.c **** 
+ 382:../libraries/Switch/twi.c ****     // Slave Receiver
+ 383:../libraries/Switch/twi.c ****     case TW_SR_SLA_ACK:   // addressed, returned ack
+ 384:../libraries/Switch/twi.c ****     case TW_SR_GCALL_ACK: // addressed generally, returned ack
+ 385:../libraries/Switch/twi.c ****     case TW_SR_ARB_LOST_SLA_ACK:   // lost arbitration, returned ack
+ 386:../libraries/Switch/twi.c ****     case TW_SR_ARB_LOST_GCALL_ACK: // lost arbitration, returned ack
+ 387:../libraries/Switch/twi.c ****       // enter slave receiver mode
+ 388:../libraries/Switch/twi.c ****       twi_state = TWI_SRX;
+ 759               	.LM84:
+ 760 02be 83E0      		ldi r24,lo8(3)
+ 761 02c0 8093 0000 		sts twi_state,r24
+ 389:../libraries/Switch/twi.c ****       // indicate that rx buffer can be overwritten and ack
+ 390:../libraries/Switch/twi.c ****       twi_rxBufferIndex = 0;
+ 763               	.LM85:
+ 764 02c4 1092 0000 		sts twi_rxBufferIndex,__zero_reg__
+ 765 02c8 00C0      		rjmp .L145
+ 766               	.L67:
+ 391:../libraries/Switch/twi.c ****       twi_reply(1);
+ 392:../libraries/Switch/twi.c ****       break;
+ 393:../libraries/Switch/twi.c ****     case TW_SR_DATA_ACK:       // data received, returned ack
+ 394:../libraries/Switch/twi.c ****     case TW_SR_GCALL_DATA_ACK: // data received generally, returned ack
+ 395:../libraries/Switch/twi.c ****       // if there is still room in the rx buffer
+ 396:../libraries/Switch/twi.c ****       if(twi_rxBufferIndex < TWI_BUFFER_LENGTH){
+ 768               	.LM86:
+ 769 02ca 8091 0000 		lds r24,twi_rxBufferIndex
+ 770 02ce 8032      		cpi r24,lo8(32)
+ 771 02d0 00F0      		brlo .+2
+ 772 02d2 00C0      		rjmp .L84
+ 397:../libraries/Switch/twi.c ****         // put byte in buffer and ack
+ 398:../libraries/Switch/twi.c ****         twi_rxBuffer[twi_rxBufferIndex++] = TWDR;
+ 774               	.LM87:
+ 775 02d4 8091 0000 		lds r24,twi_rxBufferIndex
+ 776 02d8 93B1      		in r25,0x3
+ 777 02da E82F      		mov r30,r24
+ 778 02dc F0E0      		ldi r31,0
+ 779 02de E050      		subi r30,lo8(-(twi_rxBuffer))
+ 780 02e0 F040      		sbci r31,hi8(-(twi_rxBuffer))
+ 781 02e2 9083      		st Z,r25
+ 782 02e4 8F5F      		subi r24,lo8(-(1))
+ 783 02e6 8093 0000 		sts twi_rxBufferIndex,r24
+ 784 02ea 00C0      		rjmp .L145
+ 785               	.L69:
+ 399:../libraries/Switch/twi.c ****         twi_reply(1);
+ 400:../libraries/Switch/twi.c ****       }else{
+ 401:../libraries/Switch/twi.c ****         // otherwise nack
+ 402:../libraries/Switch/twi.c ****         twi_reply(0);
+ 403:../libraries/Switch/twi.c ****       }
+ 404:../libraries/Switch/twi.c ****       break;
+ 405:../libraries/Switch/twi.c ****     case TW_SR_STOP: // stop or repeated start condition received
+ 406:../libraries/Switch/twi.c ****       // put a null char after data if there's room
+ 407:../libraries/Switch/twi.c ****       if(twi_rxBufferIndex < TWI_BUFFER_LENGTH){
+ 787               	.LM88:
+ 788 02ec 8091 0000 		lds r24,twi_rxBufferIndex
+ 789 02f0 8032      		cpi r24,lo8(32)
+ 790 02f2 00F4      		brsh .L83
+ 408:../libraries/Switch/twi.c ****         twi_rxBuffer[twi_rxBufferIndex] = '\0';
+ 792               	.LM89:
+ 793 02f4 E091 0000 		lds r30,twi_rxBufferIndex
+ 794 02f8 F0E0      		ldi r31,0
+ 795 02fa E050      		subi r30,lo8(-(twi_rxBuffer))
+ 796 02fc F040      		sbci r31,hi8(-(twi_rxBuffer))
+ 797 02fe 1082      		st Z,__zero_reg__
+ 798               	.L83:
+ 409:../libraries/Switch/twi.c ****       }
+ 410:../libraries/Switch/twi.c ****       // sends ack and stops interface for clock stretching
+ 411:../libraries/Switch/twi.c ****       twi_stop();
+ 800               	.LM90:
+ 801 0300 00D0      		rcall twi_stop
+ 412:../libraries/Switch/twi.c ****       // callback to user defined callback
+ 413:../libraries/Switch/twi.c ****       twi_onSlaveReceive(twi_rxBuffer, twi_rxBufferIndex);
+ 803               	.LM91:
+ 804 0302 6091 0000 		lds r22,twi_rxBufferIndex
+ 805 0306 E091 0000 		lds r30,twi_onSlaveReceive
+ 806 030a F091 0000 		lds r31,twi_onSlaveReceive+1
+ 807 030e 70E0      		ldi r23,0
+ 808 0310 80E0      		ldi r24,lo8(twi_rxBuffer)
+ 809 0312 90E0      		ldi r25,hi8(twi_rxBuffer)
+ 810 0314 0995      		icall
+ 414:../libraries/Switch/twi.c ****       // since we submit rx buffer to "wire" library, we can reset it
+ 415:../libraries/Switch/twi.c ****       twi_rxBufferIndex = 0;
+ 812               	.LM92:
+ 813 0316 1092 0000 		sts twi_rxBufferIndex,__zero_reg__
+ 814               	.L144:
+ 416:../libraries/Switch/twi.c ****       // ack future responses and leave slave receiver state
+ 417:../libraries/Switch/twi.c ****       twi_releaseBus();
+ 816               	.LM93:
+ 817 031a 00D0      		rcall twi_releaseBus
+ 418:../libraries/Switch/twi.c ****       break;
+ 819               	.LM94:
+ 820 031c 00C0      		rjmp .L54
+ 821               	.L70:
+ 419:../libraries/Switch/twi.c ****     case TW_SR_DATA_NACK:       // data received, returned nack
+ 420:../libraries/Switch/twi.c ****     case TW_SR_GCALL_DATA_NACK: // data received generally, returned nack
+ 421:../libraries/Switch/twi.c ****       // nack back at master
+ 422:../libraries/Switch/twi.c ****       twi_reply(0);
+ 423:../libraries/Switch/twi.c ****       break;
+ 424:../libraries/Switch/twi.c ****     
+ 425:../libraries/Switch/twi.c ****     // Slave Transmitter
+ 426:../libraries/Switch/twi.c ****     case TW_ST_SLA_ACK:          // addressed, returned ack
+ 427:../libraries/Switch/twi.c ****     case TW_ST_ARB_LOST_SLA_ACK: // arbitration lost, returned ack
+ 428:../libraries/Switch/twi.c ****       // enter slave transmitter mode
+ 429:../libraries/Switch/twi.c ****       twi_state = TWI_STX;
+ 823               	.LM95:
+ 824 031e 84E0      		ldi r24,lo8(4)
+ 825 0320 8093 0000 		sts twi_state,r24
+ 430:../libraries/Switch/twi.c ****       // ready the tx buffer index for iteration
+ 431:../libraries/Switch/twi.c ****       twi_txBufferIndex = 0;
+ 827               	.LM96:
+ 828 0324 1092 0000 		sts twi_txBufferIndex,__zero_reg__
+ 432:../libraries/Switch/twi.c ****       // set tx buffer length to be zero, to verify if user changes it
+ 433:../libraries/Switch/twi.c ****       twi_txBufferLength = 0;
+ 830               	.LM97:
+ 831 0328 1092 0000 		sts twi_txBufferLength,__zero_reg__
+ 434:../libraries/Switch/twi.c ****       // request for txBuffer to be filled and length to be set
+ 435:../libraries/Switch/twi.c ****       // note: user must call twi_transmit(bytes, length) to do this
+ 436:../libraries/Switch/twi.c ****       twi_onSlaveTransmit();
+ 833               	.LM98:
+ 834 032c E091 0000 		lds r30,twi_onSlaveTransmit
+ 835 0330 F091 0000 		lds r31,twi_onSlaveTransmit+1
+ 836 0334 0995      		icall
+ 437:../libraries/Switch/twi.c ****       // if they didn't change buffer & length, initialize it
+ 438:../libraries/Switch/twi.c ****       if(0 == twi_txBufferLength){
+ 838               	.LM99:
+ 839 0336 8091 0000 		lds r24,twi_txBufferLength
+ 840 033a 8111      		cpse r24,__zero_reg__
+ 841 033c 00C0      		rjmp .L71
+ 439:../libraries/Switch/twi.c ****         twi_txBufferLength = 1;
+ 843               	.LM100:
+ 844 033e 81E0      		ldi r24,lo8(1)
+ 845 0340 8093 0000 		sts twi_txBufferLength,r24
+ 440:../libraries/Switch/twi.c ****         twi_txBuffer[0] = 0x00;
+ 847               	.LM101:
+ 848 0344 1092 0000 		sts twi_txBuffer,__zero_reg__
+ 849               	.L71:
+ 441:../libraries/Switch/twi.c ****       }
+ 442:../libraries/Switch/twi.c ****       // transmit first byte from buffer, fall
+ 443:../libraries/Switch/twi.c ****     case TW_ST_DATA_ACK: // byte sent, ack returned
+ 444:../libraries/Switch/twi.c ****       // copy data to output register
+ 445:../libraries/Switch/twi.c ****       TWDR = twi_txBuffer[twi_txBufferIndex++];
+ 851               	.LM102:
+ 852 0348 8091 0000 		lds r24,twi_txBufferIndex
+ 853 034c E82F      		mov r30,r24
+ 854 034e F0E0      		ldi r31,0
+ 855 0350 E050      		subi r30,lo8(-(twi_txBuffer))
+ 856 0352 F040      		sbci r31,hi8(-(twi_txBuffer))
+ 857 0354 9081      		ld r25,Z
+ 858 0356 93B9      		out 0x3,r25
+ 859 0358 8F5F      		subi r24,lo8(-(1))
+ 860 035a 8093 0000 		sts twi_txBufferIndex,r24
+ 446:../libraries/Switch/twi.c ****       // if there is more to send, ack, otherwise nack
+ 447:../libraries/Switch/twi.c ****       if(twi_txBufferIndex < twi_txBufferLength){
+ 862               	.LM103:
+ 863 035e 9091 0000 		lds r25,twi_txBufferIndex
+ 864 0362 8091 0000 		lds r24,twi_txBufferLength
+ 865               	.L147:
+ 866 0366 9817      		cp r25,r24
+ 867 0368 00F4      		brsh .L84
+ 868 036a 00C0      		rjmp .L145
+ 869               	.L84:
+ 870               	.LBB26:
+ 871               	.LBB27:
+ 286:../libraries/Switch/twi.c **** 	  TWCR = _BV(TWEN) | _BV(TWIE) | _BV(TWINT);
+ 873               	.LM104:
+ 874 036c 85E8      		ldi r24,lo8(-123)
+ 875               	.L142:
+ 876 036e 86BF      		out 0x36,r24
+ 877 0370 00C0      		rjmp .L54
+ 878               	.L72:
+ 879               	.LBE27:
+ 880               	.LBE26:
+ 881               	.LBB28:
+ 882               	.LBB29:
+ 284:../libraries/Switch/twi.c ****     TWCR = _BV(TWEN) | _BV(TWIE) | _BV(TWINT) | _BV(TWEA);
+ 884               	.LM105:
+ 885 0372 85EC      		ldi r24,lo8(-59)
+ 886 0374 86BF      		out 0x36,r24
+ 887               	.LBE29:
+ 888               	.LBE28:
+ 448:../libraries/Switch/twi.c ****         twi_reply(1);
+ 449:../libraries/Switch/twi.c ****       }else{
+ 450:../libraries/Switch/twi.c ****         twi_reply(0);
+ 451:../libraries/Switch/twi.c ****       }
+ 452:../libraries/Switch/twi.c ****       break;
+ 453:../libraries/Switch/twi.c ****     case TW_ST_DATA_NACK: // received nack, we are done 
+ 454:../libraries/Switch/twi.c ****     case TW_ST_LAST_DATA: // received ack, but we are done already!
+ 455:../libraries/Switch/twi.c ****       // ack future responses
+ 456:../libraries/Switch/twi.c ****       twi_reply(1);
+ 457:../libraries/Switch/twi.c ****       // leave slave receiver state
+ 458:../libraries/Switch/twi.c ****       twi_state = TWI_READY;
+ 890               	.LM106:
+ 891 0376 1092 0000 		sts twi_state,__zero_reg__
+ 459:../libraries/Switch/twi.c ****       break;
+ 893               	.LM107:
+ 894 037a 00C0      		rjmp .L54
+ 895               	.L56:
+ 460:../libraries/Switch/twi.c **** 
+ 461:../libraries/Switch/twi.c ****     // All
+ 462:../libraries/Switch/twi.c ****     case TW_NO_INFO:   // no state information
+ 463:../libraries/Switch/twi.c ****       break;
+ 464:../libraries/Switch/twi.c ****     case TW_BUS_ERROR: // bus error, illegal stop/start
+ 465:../libraries/Switch/twi.c ****       twi_error = TW_BUS_ERROR;
+ 897               	.LM108:
+ 898 037c 1092 0000 		sts twi_error,__zero_reg__
+ 899               	.L143:
+ 466:../libraries/Switch/twi.c ****       twi_stop();
+ 901               	.LM109:
+ 902 0380 00D0      		rcall twi_stop
+ 903               	.L54:
+ 904               	/* epilogue start */
+ 467:../libraries/Switch/twi.c ****       break;
+ 468:../libraries/Switch/twi.c ****   }
+ 469:../libraries/Switch/twi.c **** }
+ 906               	.LM110:
+ 907 0382 FF91      		pop r31
+ 908 0384 EF91      		pop r30
+ 909 0386 BF91      		pop r27
+ 910 0388 AF91      		pop r26
+ 911 038a 9F91      		pop r25
+ 912 038c 8F91      		pop r24
+ 913 038e 7F91      		pop r23
+ 914 0390 6F91      		pop r22
+ 915 0392 5F91      		pop r21
+ 916 0394 4F91      		pop r20
+ 917 0396 3F91      		pop r19
+ 918 0398 2F91      		pop r18
+ 919 039a 0F90      		pop r0
+ 920 039c 0FBE      		out __SREG__,r0
+ 921 039e 0F90      		pop r0
+ 922 03a0 1F90      		pop r1
+ 923 03a2 1895      		reti
+ 925               	.Lscope11:
+ 927               		.stabd	78,0,0
+ 928               		.local	twi_error
+ 929               		.comm	twi_error,1,1
+ 930               		.local	twi_rxBufferIndex
+ 931               		.comm	twi_rxBufferIndex,1,1
+ 932               		.local	twi_txBufferLength
+ 933               		.comm	twi_txBufferLength,1,1
+ 934               		.local	twi_txBufferIndex
+ 935               		.comm	twi_txBufferIndex,1,1
+ 936               		.local	twi_masterBufferIndex
+ 937               		.comm	twi_masterBufferIndex,1,1
+ 938               		.local	twi_state
+ 939               		.comm	twi_state,1,1
+ 940               		.local	twi_masterBufferLength
+ 941               		.comm	twi_masterBufferLength,1,1
+ 942               		.local	twi_slarw
+ 943               		.comm	twi_slarw,1,1
+ 944               		.local	twi_masterBuffer
+ 945               		.comm	twi_masterBuffer,32,1
+ 946               		.local	twi_txBuffer
+ 947               		.comm	twi_txBuffer,32,1
+ 948               		.local	twi_onSlaveReceive
+ 949               		.comm	twi_onSlaveReceive,2,1
+ 950               		.local	twi_onSlaveTransmit
+ 951               		.comm	twi_onSlaveTransmit,2,1
+ 952               		.local	twi_rxBuffer
+ 953               		.comm	twi_rxBuffer,32,1
+ 968               	.Letext0:
+ 969               		.ident	"GCC: (GNU) 4.7.2"
+ 970               	.global __do_clear_bss
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 twi.c
+     /tmp/ccEBOw5i.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccEBOw5i.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccEBOw5i.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccEBOw5i.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccEBOw5i.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccEBOw5i.s:80     .text:0000000000000000 twi_init
+     /tmp/ccEBOw5i.s:937    .bss:0000000000000005 twi_state
+     /tmp/ccEBOw5i.s:115    .text:0000000000000012 twi_setAddress
+     /tmp/ccEBOw5i.s:138    .text:0000000000000018 twi_readFrom
+                             .bss:0000000000000000 twi_error
+     /tmp/ccEBOw5i.s:935    .bss:0000000000000004 twi_masterBufferIndex
+     /tmp/ccEBOw5i.s:939    .bss:0000000000000006 twi_masterBufferLength
+     /tmp/ccEBOw5i.s:941    .bss:0000000000000007 twi_slarw
+     /tmp/ccEBOw5i.s:943    .bss:0000000000000008 twi_masterBuffer
+     /tmp/ccEBOw5i.s:239    .text:0000000000000080 twi_writeTo
+     /tmp/ccEBOw5i.s:359    .text:00000000000000fc twi_transmit
+     /tmp/ccEBOw5i.s:931    .bss:0000000000000002 twi_txBufferLength
+     /tmp/ccEBOw5i.s:945    .bss:0000000000000028 twi_txBuffer
+     /tmp/ccEBOw5i.s:423    .text:000000000000012e twi_attachSlaveRxEvent
+     /tmp/ccEBOw5i.s:947    .bss:0000000000000048 twi_onSlaveReceive
+     /tmp/ccEBOw5i.s:445    .text:0000000000000138 twi_attachSlaveTxEvent
+     /tmp/ccEBOw5i.s:949    .bss:000000000000004a twi_onSlaveTransmit
+     /tmp/ccEBOw5i.s:467    .text:0000000000000142 twi_reply
+     /tmp/ccEBOw5i.s:498    .text:0000000000000150 twi_stop
+     /tmp/ccEBOw5i.s:528    .text:0000000000000160 twi_releaseBus
+     /tmp/ccEBOw5i.s:552    .text:000000000000016a __vector_17
+     /tmp/ccEBOw5i.s:929    .bss:0000000000000001 twi_rxBufferIndex
+     /tmp/ccEBOw5i.s:951    .bss:000000000000004c twi_rxBuffer
+     /tmp/ccEBOw5i.s:933    .bss:0000000000000003 twi_txBufferIndex
+
+UNDEFINED SYMBOLS
+__do_clear_bss

@@ -1,0 +1,434 @@
+   1               		.file	"itoa.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   9               		.text
+  10               	.Ltext0:
+  72               	.global	_itoa
+  74               	_itoa:
+  75               		.stabd	46,0,0
+   1:../libraries/Switch/itoa.c **** #include <string.h>
+   2:../libraries/Switch/itoa.c **** 
+   3:../libraries/Switch/itoa.c **** #include "itoa.h"
+   4:../libraries/Switch/itoa.c **** 
+   5:../libraries/Switch/itoa.c **** int _itoa(char* str, uint8_t format, int16_t value)
+   6:../libraries/Switch/itoa.c **** {
+  77               	.LM0:
+  78               	.LFBB1:
+  79               	/* prologue: function */
+  80               	/* frame size = 0 */
+  81               	/* stack size = 0 */
+  82               	.L__stack_usage = 0
+   7:../libraries/Switch/itoa.c ****   unsigned char digit;
+   8:../libraries/Switch/itoa.c ****   uint8_t enable_digits = 0;
+   9:../libraries/Switch/itoa.c **** 	char* ptr;
+  10:../libraries/Switch/itoa.c **** 
+  11:../libraries/Switch/itoa.c **** 	ptr = str;
+  12:../libraries/Switch/itoa.c **** 
+  13:../libraries/Switch/itoa.c ****   // do sign
+  14:../libraries/Switch/itoa.c ****   if (value < 0){
+  84               	.LM1:
+  85 0000 57FF      		sbrs r21,7
+  86 0002 00C0      		rjmp .L24
+  15:../libraries/Switch/itoa.c ****       value = -value;
+  88               	.LM2:
+  89 0004 5195      		neg r21
+  90 0006 4195      		neg r20
+  91 0008 5109      		sbc r21,__zero_reg__
+  16:../libraries/Switch/itoa.c ****       *str++ = '-';
+  93               	.LM3:
+  94 000a FC01      		movw r30,r24
+  95 000c 2DE2      		ldi r18,lo8(45)
+  96 000e 2193      		st Z+,r18
+  97 0010 00C0      		rjmp .L2
+  98               	.L24:
+  14:../libraries/Switch/itoa.c ****   if (value < 0){
+ 100               	.LM4:
+ 101 0012 FC01      		movw r30,r24
+ 102               	.L2:
+  17:../libraries/Switch/itoa.c ****   }
+  18:../libraries/Switch/itoa.c **** 
+  19:../libraries/Switch/itoa.c ****   // do 10000's
+  20:../libraries/Switch/itoa.c ****  	digit = '0';
+ 104               	.LM5:
+ 105 0014 20E3      		ldi r18,lo8(48)
+  21:../libraries/Switch/itoa.c ****   while (value > 9999){
+ 107               	.LM6:
+ 108 0016 00C0      		rjmp .L3
+ 109               	.L4:
+  22:../libraries/Switch/itoa.c ****       value -= 10000;
+ 111               	.LM7:
+ 112 0018 4051      		subi r20,16
+ 113 001a 5742      		sbci r21,39
+  23:../libraries/Switch/itoa.c ****       digit++;
+ 115               	.LM8:
+ 116 001c 2F5F      		subi r18,lo8(-(1))
+ 117               	.L3:
+  21:../libraries/Switch/itoa.c ****   while (value > 9999){
+ 119               	.LM9:
+ 120 001e 4031      		cpi r20,16
+ 121 0020 37E2      		ldi r19,39
+ 122 0022 5307      		cpc r21,r19
+ 123 0024 04F4      		brge .L4
+  24:../libraries/Switch/itoa.c ****   }
+  25:../libraries/Switch/itoa.c ****   if ((digit != '0') || (enable_digits != 0)) {
+ 125               	.LM10:
+ 126 0026 2033      		cpi r18,lo8(48)
+ 127 0028 01F0      		breq .L25
+  26:../libraries/Switch/itoa.c ****       *str++ = digit; 
+ 129               	.LM11:
+ 130 002a 2193      		st Z+,r18
+  27:../libraries/Switch/itoa.c ****       enable_digits = 1;
+ 132               	.LM12:
+ 133 002c 21E0      		ldi r18,lo8(1)
+ 134 002e 00C0      		rjmp .L5
+ 135               	.L25:
+   8:../libraries/Switch/itoa.c ****   uint8_t enable_digits = 0;
+ 137               	.LM13:
+ 138 0030 20E0      		ldi r18,0
+ 139               	.L5:
+  28:../libraries/Switch/itoa.c ****   }
+  29:../libraries/Switch/itoa.c **** 
+  30:../libraries/Switch/itoa.c ****   // do 1000's
+  31:../libraries/Switch/itoa.c ****   digit = '0';
+ 141               	.LM14:
+ 142 0032 30E3      		ldi r19,lo8(48)
+  32:../libraries/Switch/itoa.c ****   while(value > 999){
+ 144               	.LM15:
+ 145 0034 00C0      		rjmp .L6
+ 146               	.L7:
+  33:../libraries/Switch/itoa.c ****       value -= 1000;
+ 148               	.LM16:
+ 149 0036 485E      		subi r20,-24
+ 150 0038 5340      		sbci r21,3
+  34:../libraries/Switch/itoa.c ****       digit++;
+ 152               	.LM17:
+ 153 003a 3F5F      		subi r19,lo8(-(1))
+ 154               	.L6:
+  32:../libraries/Switch/itoa.c ****   while(value > 999){
+ 156               	.LM18:
+ 157 003c 483E      		cpi r20,-24
+ 158 003e 73E0      		ldi r23,3
+ 159 0040 5707      		cpc r21,r23
+ 160 0042 04F4      		brge .L7
+  35:../libraries/Switch/itoa.c ****   }
+  36:../libraries/Switch/itoa.c ****   if((digit != '0') || (enable_digits != 0)) {
+ 162               	.LM19:
+ 163 0044 3033      		cpi r19,lo8(48)
+ 164 0046 01F4      		brne .L8
+ 166               	.LM20:
+ 167 0048 2223      		tst r18
+ 168 004a 01F0      		breq .L9
+ 169               	.L8:
+  37:../libraries/Switch/itoa.c ****       *str++ = digit;
+ 171               	.LM21:
+ 172 004c 3193      		st Z+,r19
+  38:../libraries/Switch/itoa.c ****       enable_digits = 1;
+ 174               	.LM22:
+ 175 004e 21E0      		ldi r18,lo8(1)
+ 176               	.L9:
+  39:../libraries/Switch/itoa.c ****   }
+  40:../libraries/Switch/itoa.c **** 
+  41:../libraries/Switch/itoa.c ****   // do 100's
+  42:../libraries/Switch/itoa.c ****   digit = '0';
+ 178               	.LM23:
+ 179 0050 30E3      		ldi r19,lo8(48)
+  43:../libraries/Switch/itoa.c ****   while(value > 99){
+ 181               	.LM24:
+ 182 0052 00C0      		rjmp .L10
+ 183               	.L11:
+  44:../libraries/Switch/itoa.c ****       value -= 100;
+ 185               	.LM25:
+ 186 0054 4456      		subi r20,100
+ 187 0056 5109      		sbc r21,__zero_reg__
+  45:../libraries/Switch/itoa.c ****       digit++;
+ 189               	.LM26:
+ 190 0058 3F5F      		subi r19,lo8(-(1))
+ 191               	.L10:
+  43:../libraries/Switch/itoa.c ****   while(value > 99){
+ 193               	.LM27:
+ 194 005a 4436      		cpi r20,100
+ 195 005c 5105      		cpc r21,__zero_reg__
+ 196 005e 04F4      		brge .L11
+  46:../libraries/Switch/itoa.c ****   }
+  47:../libraries/Switch/itoa.c ****   if (format == Milli){
+ 198               	.LM28:
+ 199 0060 6330      		cpi r22,lo8(3)
+ 200 0062 01F4      		brne .L12
+  48:../libraries/Switch/itoa.c ****       if (enable_digits == 0) *str++ = '0';
+ 202               	.LM29:
+ 203 0064 2111      		cpse r18,__zero_reg__
+ 204 0066 00C0      		rjmp .L13
+ 206               	.LM30:
+ 207 0068 20E3      		ldi r18,lo8(48)
+ 208 006a 2193      		st Z+,r18
+ 209               	.L13:
+  49:../libraries/Switch/itoa.c ****       *str++ = '.';
+ 211               	.LM31:
+ 212 006c 2EE2      		ldi r18,lo8(46)
+ 213 006e 2193      		st Z+,r18
+ 214 0070 00C0      		rjmp .L14
+ 215               	.L12:
+  50:../libraries/Switch/itoa.c ****       enable_digits = 1;
+  51:../libraries/Switch/itoa.c ****   }
+  52:../libraries/Switch/itoa.c ****   if((digit != '0') || (enable_digits != 0)) {
+ 217               	.LM32:
+ 218 0072 3033      		cpi r19,lo8(48)
+ 219 0074 01F4      		brne .L14
+ 221               	.LM33:
+ 222 0076 2223      		tst r18
+ 223 0078 01F0      		breq .L15
+ 224               	.L14:
+  53:../libraries/Switch/itoa.c ****       *str++ = digit;
+ 226               	.LM34:
+ 227 007a 3193      		st Z+,r19
+  54:../libraries/Switch/itoa.c ****       enable_digits = 1;
+ 229               	.LM35:
+ 230 007c 21E0      		ldi r18,lo8(1)
+ 231               	.L15:
+  55:../libraries/Switch/itoa.c ****   }
+  56:../libraries/Switch/itoa.c **** 
+  57:../libraries/Switch/itoa.c ****   // do 10's
+  58:../libraries/Switch/itoa.c ****   digit = '0';
+ 233               	.LM36:
+ 234 007e 30E3      		ldi r19,lo8(48)
+  59:../libraries/Switch/itoa.c ****   while(value > 9){
+ 236               	.LM37:
+ 237 0080 00C0      		rjmp .L16
+ 238               	.L17:
+  60:../libraries/Switch/itoa.c ****     value -= 10;
+ 240               	.LM38:
+ 241 0082 4A50      		subi r20,10
+ 242 0084 5109      		sbc r21,__zero_reg__
+  61:../libraries/Switch/itoa.c ****     digit++;
+ 244               	.LM39:
+ 245 0086 3F5F      		subi r19,lo8(-(1))
+ 246               	.L16:
+  59:../libraries/Switch/itoa.c ****   while(value > 9){
+ 248               	.LM40:
+ 249 0088 4A30      		cpi r20,10
+ 250 008a 5105      		cpc r21,__zero_reg__
+ 251 008c 04F4      		brge .L17
+  62:../libraries/Switch/itoa.c ****   }
+  63:../libraries/Switch/itoa.c ****   if (format == Centi){
+ 253               	.LM41:
+ 254 008e 6230      		cpi r22,lo8(2)
+ 255 0090 01F4      		brne .L18
+  64:../libraries/Switch/itoa.c ****     if (enable_digits == 0) *str++ = '0';
+ 257               	.LM42:
+ 258 0092 2111      		cpse r18,__zero_reg__
+ 259 0094 00C0      		rjmp .L19
+ 261               	.LM43:
+ 262 0096 20E3      		ldi r18,lo8(48)
+ 263 0098 2193      		st Z+,r18
+ 264               	.L19:
+  65:../libraries/Switch/itoa.c ****     *str++ = '.';
+ 266               	.LM44:
+ 267 009a 2EE2      		ldi r18,lo8(46)
+ 268 009c 2193      		st Z+,r18
+ 269 009e 00C0      		rjmp .L20
+ 270               	.L18:
+  66:../libraries/Switch/itoa.c ****     enable_digits = 1;
+  67:../libraries/Switch/itoa.c ****   }
+  68:../libraries/Switch/itoa.c ****   if((digit != '0') || (enable_digits != 0)  || (format == TwoDigits) ) {
+ 272               	.LM45:
+ 273 00a0 3033      		cpi r19,lo8(48)
+ 274 00a2 01F4      		brne .L20
+ 276               	.LM46:
+ 277 00a4 2111      		cpse r18,__zero_reg__
+ 278 00a6 00C0      		rjmp .L20
+ 279 00a8 6530      		cpi r22,lo8(5)
+ 280 00aa 01F4      		brne .L21
+ 281               	.L20:
+  69:../libraries/Switch/itoa.c ****     *str++ = digit;
+ 283               	.LM47:
+ 284 00ac 3193      		st Z+,r19
+  70:../libraries/Switch/itoa.c ****     enable_digits = 1;
+ 286               	.LM48:
+ 287 00ae 21E0      		ldi r18,lo8(1)
+ 288               	.L21:
+  71:../libraries/Switch/itoa.c ****   }
+  72:../libraries/Switch/itoa.c **** 
+  73:../libraries/Switch/itoa.c ****   // do 1's
+  74:../libraries/Switch/itoa.c ****   digit = '0' + value;
+ 290               	.LM49:
+ 291 00b0 405D      		subi r20,lo8(-(48))
+  75:../libraries/Switch/itoa.c ****   if (format == Deci){
+ 293               	.LM50:
+ 294 00b2 6130      		cpi r22,lo8(1)
+ 295 00b4 01F4      		brne .L22
+  76:../libraries/Switch/itoa.c ****     if (enable_digits == 0) *str++ = '0';
+ 297               	.LM51:
+ 298 00b6 2111      		cpse r18,__zero_reg__
+ 299 00b8 00C0      		rjmp .L23
+ 301               	.LM52:
+ 302 00ba 20E3      		ldi r18,lo8(48)
+ 303 00bc 2193      		st Z+,r18
+ 304               	.L23:
+  77:../libraries/Switch/itoa.c ****     *str++ = '.';
+ 306               	.LM53:
+ 307 00be 2EE2      		ldi r18,lo8(46)
+ 308 00c0 2193      		st Z+,r18
+ 309               	.L22:
+  78:../libraries/Switch/itoa.c ****   }
+  79:../libraries/Switch/itoa.c ****   *str++ = digit;
+ 311               	.LM54:
+ 312 00c2 4083      		st Z,r20
+  80:../libraries/Switch/itoa.c ****   *str = 0;
+ 314               	.LM55:
+ 315 00c4 1182      		std Z+1,__zero_reg__
+  79:../libraries/Switch/itoa.c ****   *str++ = digit;
+ 317               	.LM56:
+ 318 00c6 3196      		adiw r30,1
+  81:../libraries/Switch/itoa.c **** 
+  82:../libraries/Switch/itoa.c **** 	return str - ptr;
+ 320               	.LM57:
+ 321 00c8 E81B      		sub r30,r24
+ 322 00ca F90B      		sbc r31,r25
+  83:../libraries/Switch/itoa.c **** }
+ 324               	.LM58:
+ 325 00cc CF01      		movw r24,r30
+ 326 00ce 0895      		ret
+ 331               	.Lscope1:
+ 333               		.stabd	78,0,0
+ 334               		.section	.rodata.str1.1,"aMS",@progbits,1
+ 335               	.LC0:
+ 336 0000 6F6E 00   		.string	"on"
+ 337               	.LC1:
+ 338 0003 6F66 6600 		.string	"off"
+ 339               		.text
+ 344               	.global	itoa_toString
+ 346               	itoa_toString:
+ 347               		.stabd	46,0,0
+  84:../libraries/Switch/itoa.c **** 
+  85:../libraries/Switch/itoa.c **** 
+  86:../libraries/Switch/itoa.c **** /// Convert integer to ascii decimal string and send to terminal
+  87:../libraries/Switch/itoa.c **** /// @param integer value
+  88:../libraries/Switch/itoa.c **** /// @param desired ascii decimal format
+  89:../libraries/Switch/itoa.c **** uint8_t itoa_toString(char* str, int16_t value, uint8_t format)
+  90:../libraries/Switch/itoa.c **** {
+ 349               	.LM59:
+ 350               	.LFBB2:
+ 351 00d0 0F93      		push r16
+ 352 00d2 1F93      		push r17
+ 353 00d4 CF93      		push r28
+ 354 00d6 DF93      		push r29
+ 355               	/* prologue: function */
+ 356               	/* frame size = 0 */
+ 357               	/* stack size = 4 */
+ 358               	.L__stack_usage = 4
+ 359 00d8 EC01      		movw r28,r24
+ 360 00da 8B01      		movw r16,r22
+ 361 00dc 642F      		mov r22,r20
+  91:../libraries/Switch/itoa.c **** 	int16_t hours = 0;
+  92:../libraries/Switch/itoa.c **** 
+  93:../libraries/Switch/itoa.c **** 	if(format == Time){
+ 363               	.LM60:
+ 364 00de 4630      		cpi r20,lo8(6)
+ 365 00e0 01F4      		brne .L40
+ 366 00e2 00C0      		rjmp .L39
+ 367               	.L35:
+  94:../libraries/Switch/itoa.c **** 		while (value >= 60) {++hours ; value -= 60;}
+ 369               	.LM61:
+ 370 00e4 4F5F      		subi r20,-1
+ 371 00e6 5F4F      		sbci r21,-1
+ 372 00e8 0C53      		subi r16,60
+ 373 00ea 1109      		sbc r17,__zero_reg__
+ 374 00ec 00C0      		rjmp .L33
+ 375               	.L39:
+  93:../libraries/Switch/itoa.c **** 	if(format == Time){
+ 377               	.LM62:
+ 378 00ee 40E0      		ldi r20,0
+ 379 00f0 50E0      		ldi r21,0
+ 380               	.L33:
+ 382               	.LM63:
+ 383 00f2 0C33      		cpi r16,60
+ 384 00f4 1105      		cpc r17,__zero_reg__
+ 385 00f6 04F4      		brge .L35
+  95:../libraries/Switch/itoa.c **** 		str += _itoa(str, TwoDigits, hours);
+ 387               	.LM64:
+ 388 00f8 65E0      		ldi r22,lo8(5)
+ 389 00fa CE01      		movw r24,r28
+ 390 00fc 00D0      		rcall _itoa
+  96:../libraries/Switch/itoa.c **** 		*str++ = '.'; 
+ 392               	.LM65:
+ 393 00fe C80F      		add r28,r24
+ 394 0100 D91F      		adc r29,r25
+ 395 0102 8EE2      		ldi r24,lo8(46)
+ 396 0104 8993      		st Y+,r24
+  97:../libraries/Switch/itoa.c **** 		_itoa(str, TwoDigits, value);
+ 398               	.LM66:
+ 399 0106 A801      		movw r20,r16
+ 400 0108 65E0      		ldi r22,lo8(5)
+ 401 010a 00C0      		rjmp .L41
+ 402               	.L40:
+  98:../libraries/Switch/itoa.c **** 	} else if(format == Bool) {
+ 404               	.LM67:
+ 405 010c 4430      		cpi r20,lo8(4)
+ 406 010e 01F4      		brne .L37
+  99:../libraries/Switch/itoa.c **** 		if(value) strcpy(str, "on"); else strcpy(str, "off");
+ 408               	.LM68:
+ 409 0110 012B      		or r16,r17
+ 410 0112 01F0      		breq .L38
+ 412               	.LM69:
+ 413 0114 60E0      		ldi r22,lo8(.LC0)
+ 414 0116 70E0      		ldi r23,hi8(.LC0)
+ 415 0118 00C0      		rjmp .L42
+ 416               	.L38:
+ 418               	.LM70:
+ 419 011a 60E0      		ldi r22,lo8(.LC1)
+ 420 011c 70E0      		ldi r23,hi8(.LC1)
+ 421               	.L42:
+ 422 011e CE01      		movw r24,r28
+ 423 0120 00D0      		rcall strcpy
+ 424 0122 00C0      		rjmp .L36
+ 425               	.L37:
+ 100:../libraries/Switch/itoa.c **** 	} else {
+ 101:../libraries/Switch/itoa.c **** 		_itoa(str, format, value);
+ 427               	.LM71:
+ 428 0124 A801      		movw r20,r16
+ 429               	.L41:
+ 430 0126 CE01      		movw r24,r28
+ 431 0128 00D0      		rcall _itoa
+ 432               	.L36:
+ 102:../libraries/Switch/itoa.c **** 	}
+ 103:../libraries/Switch/itoa.c **** 	return strlen(str);
+ 434               	.LM72:
+ 435 012a EC2F      		mov r30,r28
+ 436 012c FD2F      		mov r31,r29
+ 437 012e DF01      		movw r26,r30
+ 438               		0:
+ 439 0130 0D90      		ld __tmp_reg__,X+
+ 440 0132 0020      		tst __tmp_reg__
+ 441 0134 01F4      		brne 0b
+ 442 0136 CD01      		movw r24,r26
+ 443 0138 0197      		sbiw r24,1
+ 104:../libraries/Switch/itoa.c **** }
+ 445               	.LM73:
+ 446 013a 8C1B      		sub r24,r28
+ 447               	/* epilogue start */
+ 448 013c DF91      		pop r29
+ 449 013e CF91      		pop r28
+ 450 0140 1F91      		pop r17
+ 451 0142 0F91      		pop r16
+ 452 0144 0895      		ret
+ 457               	.Lscope2:
+ 459               		.stabd	78,0,0
+ 461               	.Letext0:
+ 462               		.ident	"GCC: (GNU) 4.7.2"
+ 463               	.global __do_copy_data
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 itoa.c
+     /tmp/ccDOxvSv.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccDOxvSv.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccDOxvSv.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccDOxvSv.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccDOxvSv.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccDOxvSv.s:74     .text:0000000000000000 _itoa
+     /tmp/ccDOxvSv.s:346    .text:00000000000000d0 itoa_toString
+
+UNDEFINED SYMBOLS
+strcpy
+__do_copy_data
