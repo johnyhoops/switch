@@ -8,7 +8,7 @@
 #define kLowThreshold 256
 #define kCounterOffset 2
 
-static volatile uint16_t adc_result[8] = {0};
+static volatile uint16_t adc_result[10] = {0};
 static volatile uint8_t adc_channel = 0;
 
 
@@ -37,10 +37,16 @@ static int16_t getValue(uint8_t reference)
 
 	reference--;
 	reference ^= 0x01;
+	
+	uint8_t clear = 0;
+	if((reference == 2) || (reference == 3)) clear = 1;
 
 	sreg = SREG;
 	cli();
 	value = adc_result[reference & 0x07];
+	if(clear){
+		adc_result[reference & 0x07] = 0;
+	}
 	SREG = sreg;
 	return value;
 }
@@ -59,18 +65,23 @@ ISR(ADC_vect)
 
 	*result = ADC;
 
-	if((*(result + 2) & 0x01) == 0){
-		if(*result > kHighThreshold) (*(result + 2))++;
+	if((*(result + 8) & 0x01) == 0){
+		if(*result > kHighThreshold){
+		 (*(result + 8))++;
+		 }
 	} else {
-		if(*result < kLowThreshold) (*(result + 2))++;
+		if(*result < kLowThreshold){
+		 (*(result + 8))++;
+		 (*(result + 2))++;
+		 }
 	}
 
 	if(seconds != bios_seconds){
 		seconds = bios_seconds;
-		adc_result[4] = adc_result[2] - adc_result[6];
-		adc_result[5] = adc_result[3] - adc_result[7];
-		adc_result[6] = adc_result[2];
-		adc_result[7] = adc_result[3];
+		adc_result[4] = (adc_result[8] - adc_result[6]) >> 1;
+		adc_result[5] = (adc_result[9] - adc_result[7]) >> 1;
+		adc_result[6] = adc_result[8];
+		adc_result[7] = adc_result[9];
 	}
 
 	adc_channel ^= 0x01;
