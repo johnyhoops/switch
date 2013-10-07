@@ -44,6 +44,8 @@ Register reg_map[] = {
 	{ee, ee_eeprom1},
 	{ee, ee_eeprom2},
 	{ee, ee_eeprom3},
+	
+	{rtc, 0},
 
 	{0}
 };

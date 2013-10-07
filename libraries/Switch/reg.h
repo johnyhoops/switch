@@ -13,6 +13,7 @@
 #include "uif.h"
 #include "pwm.h"
 #include "ee.h"
+#include "rtc.h"
 
 #ifdef __cplusplus
 extern "C"{
@@ -55,6 +56,8 @@ enum reg_registers {
 	Eeprom1,
 	Eeprom2,
 	Eeprom3,
+	
+	RTC,					// real time clock
 };
 
 uint8_t reg_init(void);

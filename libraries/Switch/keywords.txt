@@ -32,6 +32,7 @@ Philips1	LITERAL1
 Philips2	LITERAL1
 Honeywell1	LITERAL1
 Honeywell2	LITERAL1
+RTC	LITERAL1
 LeftShort	LITERAL1
 CenterShort	LITERAL1
 RightShort	LITERAL1

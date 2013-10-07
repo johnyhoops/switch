@@ -74,7 +74,8 @@ clean:
 ## AVRDude Programming
 program: avrboot.hex
 	avrdude -c dragon_isp -p m8 -P usb -e -U flash:w:avrboot.hex -U lfuse:w:0xa4:m -U hfuse:w:0xc4:m
-	#avrdude -c dragon_isp -p m8 -P usb -U hfuse:w:0x44:m
+	sleep 2
+	avrdude -c dragon_isp -p m8 -P usb -U hfuse:w:0x44:m
 	
 ## Other dependencies
 -include $(shell mkdir dep 2>/dev/null) $(wildcard dep/*)
