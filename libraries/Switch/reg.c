@@ -20,33 +20,28 @@ Register reg_map[] = {
 	{adc, adc_kInput1},
 	{adc, adc_kInput2},
 	{i2c, i2c_kInput},
-
+	{i2c, i2c_kInputNoGain},
 	{ntcPhilips, adc_kInput1},
 	{ntcPhilips, adc_kInput2},
 	{ntcHoneywell, adc_kInput1},
 	{ntcHoneywell, adc_kInput2},
 	{adc, adc_kCounter1},
-
 	{adc, adc_kCounter2},
 	{adc, adc_kFrequency1},
 	{adc, adc_kFrequency2},
 	{uif, uif_kKeypad},
 	{uif, uif_kDisplayFormat},
-
 	{uif, uif_kDisplayInteger},
 	{uif, uif_kDisplayFormat},
 	{uif, uif_kDisplayString1},
 	{uif, uif_kDisplayString2},
 	{uif, uif_kDisplayString3},
-
 	{uif, uif_kDisplayString4},
 	{ee, ee_SlaveAddress},
 	{ee, ee_eeprom1},
 	{ee, ee_eeprom2},
 	{ee, ee_eeprom3},
-	
 	{rtc, 0},
-
 	{0}
 };
 

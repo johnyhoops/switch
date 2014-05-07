@@ -9,6 +9,8 @@ extern "C"{
 
 HAL* ntcHoneywell(void);
 
+int16_t ntcHoneywell_getDeciCelcius(int16_t rawADC);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif

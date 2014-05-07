@@ -32,31 +32,27 @@ enum reg_registers {
 	Input1,					// analog inputs
 	Input2,
 	InputI2C,
-
+	InputI2CNoGain,
 	Philips1,				// processed analog inputs
 	Philips2,
 	Honeywell1,
 	Honeywell2,
 	Counter1,				// processed digital inputs
-
 	Counter2,
 	Frequency1,
 	Frequency2,
 	Keypad,					// user interface
 	DisplayIntegerFormat,
-
 	DisplayInteger,
 	DisplayStringFormat,
 	DisplayString,
 	DisplayString2,
 	DisplayString3,
-
 	DisplayString4,
 	SlaveAddress,			// eeprom storage
 	Eeprom1,
 	Eeprom2,
 	Eeprom3,
-	
 	RTC,					// real time clock
 };
 

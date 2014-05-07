@@ -16,7 +16,7 @@ static int deciCelcius[2] = {0};
 static const int16_t PROGMEM TEMP_LOOKUP_TABLE[] =  TEMP_TABLE;
 #define TEMP_LOOKUP_TABLE_SIZE (sizeof(TEMP_LOOKUP_TABLE) / sizeof(int16_t))
 
-static int16_t getDeciCelcius(int16_t rawADC)
+int16_t ntcHoneywell_getDeciCelcius(int16_t rawADC)
 {
 	int16_t ref_lo, ref_hi, delta, temp;
 	int8_t i;
@@ -45,7 +45,7 @@ static int16_t getValue(uint8_t reference)
 static void update(uint8_t reference)
 {
 	uint8_t index = (reference & 0x01);
-	deciCelcius[index] = getDeciCelcius(adc()->getValue(reference));
+	deciCelcius[index] = ntcHoneywell_getDeciCelcius(adc()->getValue(reference));
 }
 
 

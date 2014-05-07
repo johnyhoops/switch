@@ -9,6 +9,7 @@ extern "C"{
 
 enum i2c_reference{
 	i2c_kInput = 0,
+	i2c_kInputNoGain
 };
 
 HAL* i2c(void);
