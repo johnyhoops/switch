@@ -1,14 +1,14 @@
 import minimalmodbus
 import time
 
-address = 1
-instrument = minimalmodbus.Instrument('/dev/ttyUSB0', address) # port name, slave address (in decimal)
+address = 104
+instrument = minimalmodbus.Instrument('/dev/tty.usbserial', address) # port name, slave address (in decimal)
 instrument.serial.timeout  = 0.02
 
-instrument2 = minimalmodbus.Instrument('/dev/ttyUSB0', 2)
+#instrument2 = minimalmodbus.Instrument('/dev/tty.usbserial', 2)
 
-broadcast = minimalmodbus.Instrument('/dev/ttyUSB0', 0)
-#broadcast.write_registers(6, [address + (255 - address) * 256]);	
+broadcast = minimalmodbus.Instrument('/dev/tty.usbserial', 0)
+#broadcast.write_registers(22, [address + (255 - address) * 256]);	
 
 def setDisplay(string):
 	output = list()
@@ -37,9 +37,9 @@ while True:
 	
 	#instrument.write_registers(17, [0x412e, 0x422e , 0x0043]);
 	
-	instrument.write_registers(14, [1, 666]);
+	instrument.write_registers(0, [i, 255 - i]);
 	
-	value = instrument.read_registers(12, 1);
+	value = instrument.read_registers(6, 1);
 	print(value)
 	time.sleep(.05)
 	

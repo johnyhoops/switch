@@ -50,10 +50,10 @@ void uif_setDisplay(char* str)
 		if((format & Flash) == 0){
 			segmentBuffer[segmentBufferIndex + uif_kNumberOfDigits] = segments;
 		}
-		if(++segmentBufferIndex > 3){
+		str++;
+		if((++segmentBufferIndex == 4) && (*str != '.')){
 			break;
 		}
-		str++;
 	}
 	memcpy(bios_segment, segmentBuffer, uif_kSegmentBufferSize);
 }

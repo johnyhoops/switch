@@ -5,7 +5,7 @@ MCU=atmega8
 # Target file name (without extension).
 TARGET = main
 AVRDUDE_PROGRAMMER = avr109
-AVRDUDE_PORT = /dev/ttyUSB0
+AVRDUDE_PORT = /dev/tty.usbserial
 
 ############# Don't need to change below here for most purposes  (Elliot)
 
@@ -21,7 +21,7 @@ SRC = $(TARGET).c
 
 # If there is more than one source file, append them above, or modify and
 # uncomment the following:
-SRC += uart.c modbus.c ee.c pwm.c uif.c i2c.c reg.c seg.c  twi.c adc.c itoa.c ntcPhilips.c ntcHoneywell.c
+SRC += uart.c modbus.c ee.c pwm.c uif.c i2c.c reg.c seg.c rtc.c twi.c adc.c itoa.c ntcPhilips.c ntcHoneywell.c
 
 # You can also wrap lines by appending a backslash to the end of the line:
 #SRC += baz.c \
